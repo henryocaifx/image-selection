@@ -25,6 +25,7 @@ const GeneratedImageSchema = z.object({
   description: z
     .string()
     .describe('A textual description of the generated image.'),
+  generationTimeMs: z.number().describe("Time taken to generate the image in milliseconds."),
 });
 
 const InitialAIPortraitGenerationOutputSchema = z.object({
@@ -47,8 +48,7 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
     outputSchema: InitialAIPortraitGenerationOutputSchema,
   },
   async input => {
-    const results: { url: string, description: string }[] = [];
-    const count = 1; // Generate 1 initial portraits as requested
+    const count = 10; // Generate 1 initial portraits as requested
 
     const prompts = [
       "Using the person in the image as the reference, generate a professional close-up headshot, front-facing. EXACT SAME PERSON. Professional lighting, photorealistic.",
@@ -58,7 +58,13 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
       "Using the person in the image as the reference, generate a professional portrait from a different side angle. EXACT SAME PERSON. Professional lighting, photorealistic.",
     ];
 
-    for (let i = 0; i < count; i++) {
+    // Preload the model in Genkit's registry to prevent "already has an entry" warnings on parallel calls
+    try {
+      await ai.registry.lookupAction('/model/vertexai/gemini-3.1-flash-image-preview');
+    } catch (_) { }
+
+    const generationPromises = Array.from({ length: count }).map(async (_, i) => {
+      const startTime = Date.now();
       try {
         const { media } = await ai.generate({
           model: 'vertexai/gemini-3.1-flash-image-preview',
@@ -79,13 +85,16 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
         });
 
         if (media && media.url) {
-          results.push({ url: media.url, description: `Portrait Variation ${i + 1}` });
+          return { url: media.url, description: `Portrait Variation ${i + 1}`, generationTimeMs: Date.now() - startTime };
         }
+        return null;
       } catch (error) {
         console.error(`Initial generation iteration ${i} failed:`, error);
+        return null;
       }
-    }
+    });
 
+    const results = (await Promise.all(generationPromises)).filter((res): res is { url: string, description: string, generationTimeMs: number } => res !== null);
     return { generatedImages: results };
   }
 );

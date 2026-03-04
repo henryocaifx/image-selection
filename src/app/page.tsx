@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Image from 'next/image';
 import { Sparkles, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,12 +13,31 @@ import { GeneratedGallery } from '@/components/portrait/GeneratedGallery';
 import { LibraryGallery } from '@/components/portrait/LibraryGallery';
 import { NotificationSection } from '@/components/portrait/NotificationSection';
 
+export type GeneratedImageData = {
+  url: string;
+  generationTimeMs: number;
+};
+
 export default function PortraitProApp() {
   const [sourceImage, setSourceImage] = useState<string | null>(null);
-  const [generatedImages, setGeneratedImages] = useState<string[]>([]);
+  const [generatedImages, setGeneratedImages] = useState<GeneratedImageData[]>([]);
   const [libraryImages, setLibraryImages] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generationTime, setGenerationTime] = useState(0);
   const { toast } = useToast();
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isGenerating) {
+      setGenerationTime(0);
+      interval = setInterval(() => {
+        setGenerationTime(prev => prev + 1);
+      }, 1000);
+    } else {
+      setGenerationTime(0);
+    }
+    return () => clearInterval(interval);
+  }, [isGenerating]);
 
   const handleStartGeneration = async () => {
     if (!sourceImage) return;
@@ -29,11 +48,11 @@ export default function PortraitProApp() {
     try {
       const result = await initialAIPortraitGeneration({ photoDataUri: sourceImage });
       if (result && result.generatedImages && result.generatedImages.length > 0) {
-        const urls = result.generatedImages.map(img => img.url);
-        setGeneratedImages(urls);
+        const images = result.generatedImages.map(img => ({ url: img.url, generationTimeMs: img.generationTimeMs }));
+        setGeneratedImages(images);
         toast({
           title: "Portraits Ready",
-          description: `Generated ${urls.length} initial portraits for you.`,
+          description: `Generated ${images.length} initial portraits for you.`,
         });
       } else {
         toast({
@@ -144,7 +163,7 @@ export default function PortraitProApp() {
                 className="h-16 px-12 bg-primary text-primary-foreground font-bold text-xl rounded-full shadow-2xl hover:scale-105 transition-all"
               >
                 {isGenerating ? (
-                  "Generating Batch..."
+                  `Generating Batch... (${generationTime}s)`
                 ) : (
                   <>
                     Generate My Portraits
@@ -164,6 +183,7 @@ export default function PortraitProApp() {
             onGenerateMore={handleGenerateMore}
             isGenerating={isGenerating}
             canGenerateMore={generatedImages.length < 100}
+            generationTime={generationTime}
           />
 
           <LibraryGallery

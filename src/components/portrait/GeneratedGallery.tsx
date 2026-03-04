@@ -14,12 +14,13 @@ import {
 } from "@/components/ui/dialog";
 
 interface GeneratedGalleryProps {
-  images: string[];
+  images: { url: string; generationTimeMs: number }[];
   libraryImages: string[];
   onAddToLibrary: (url: string) => void;
   onGenerateMore: () => void;
   isGenerating: boolean;
   canGenerateMore: boolean;
+  generationTime: number;
 }
 
 export function GeneratedGallery({
@@ -28,7 +29,8 @@ export function GeneratedGallery({
   onAddToLibrary,
   onGenerateMore,
   isGenerating,
-  canGenerateMore
+  canGenerateMore,
+  generationTime
 }: GeneratedGalleryProps) {
 
   if (images.length === 0 && !isGenerating) return null;
@@ -47,17 +49,17 @@ export function GeneratedGallery({
             className="bg-secondary hover:bg-secondary/80 border border-primary/20"
           >
             <Plus className="mr-2 h-4 w-4" />
-            {isGenerating ? "Generating..." : "Generate More Variations"}
+            {isGenerating ? `Generating... (${generationTime}s)` : "Generate More Variations"}
           </Button>
         )}
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {images.map((url, idx) => {
+        {images.map(({ url, generationTimeMs }, idx) => {
           const isSelected = libraryImages.includes(url);
           return (
-            <Card key={idx} className="relative group overflow-hidden bg-muted/20 border-none image-grid-item">
-              <div className="aspect-[3/4] relative">
+            <Card key={idx} className="relative group overflow-hidden bg-muted/20 border-none image-grid-item flex flex-col">
+              <div className="aspect-[3/4] relative w-full">
                 <Image
                   src={url}
                   alt={`Generated portrait ${idx + 1}`}
@@ -99,13 +101,17 @@ export function GeneratedGallery({
                   </Badge>
                 )}
               </div>
+              <div className="p-2 text-xs text-center text-muted-foreground border-t bg-background/50">
+                Generated in {(generationTimeMs / 1000).toFixed(1)}s
+              </div>
             </Card>
           );
         })}
 
         {isGenerating && (
-          <Card key="skeleton" className="aspect-[3/4] bg-muted animate-pulse rounded-lg border-none flex items-center justify-center">
+          <Card key="skeleton" className="aspect-[3/4] bg-muted animate-pulse rounded-lg border-none flex flex-col items-center justify-center gap-4">
             <div className="w-8 h-1 bg-primary/20 rounded-full" />
+            <span className="text-sm font-medium text-muted-foreground">{generationTime}s elapsed</span>
           </Card>
         )}
       </div>

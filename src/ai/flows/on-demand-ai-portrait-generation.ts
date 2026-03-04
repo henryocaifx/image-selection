@@ -23,7 +23,10 @@ export type OnDemandAIPortraitGenerationInput = z.infer<
   typeof OnDemandAIPortraitGenerationInputSchema
 >;
 
-const OnDemandAIPortraitGenerationOutputSchema = z.array(z.string());
+const OnDemandAIPortraitGenerationOutputSchema = z.array(z.object({
+  url: z.string(),
+  generationTimeMs: z.number().describe("Time taken to generate the image in milliseconds."),
+}));
 export type OnDemandAIPortraitGenerationOutput = z.infer<
   typeof OnDemandAIPortraitGenerationOutputSchema
 >;
@@ -41,7 +44,6 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
     outputSchema: OnDemandAIPortraitGenerationOutputSchema,
   },
   async (input) => {
-    const generatedImages: string[] = [];
     // Requested count (usually 10)
     const numToGenerate = input.count;
 
@@ -53,9 +55,14 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
       "Generate a professional candid-style portrait of this EXACT SAME PERSON in a business casual environment."
     ];
 
-    for (let i = 0; i < numToGenerate; i++) {
+    // Preload the model in Genkit's registry to prevent "already has an entry" warnings on parallel calls
+    try {
+      await ai.registry.lookupAction('/model/vertexai/gemini-3.1-flash-image-preview');
+    } catch (_) { }
+
+    const generationPromises = Array.from({ length: numToGenerate }).map(async (_, i) => {
+      const startTime = Date.now();
       try {
-        // Use a random prompt or cycle through them for variety
         const promptText = variationPrompts[Math.floor(Math.random() * variationPrompts.length)];
 
         const { media } = await ai.generate({
@@ -76,13 +83,15 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
           },
         });
 
-        if (media && media.url) {
-          generatedImages.push(media.url);
-        }
+        return media?.url ? { url: media.url, generationTimeMs: Date.now() - startTime } : null;
       } catch (error) {
         console.error('On-demand generation failed:', error);
+        return null;
       }
-    }
+    });
+
+    const results = await Promise.all(generationPromises);
+    const generatedImages = results.filter((res): res is { url: string, generationTimeMs: number } => res !== null);
     return generatedImages;
   }
 );
