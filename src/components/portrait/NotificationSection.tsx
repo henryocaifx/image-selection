@@ -34,15 +34,26 @@ export function NotificationSection({ libraryCount, libraryImages }: Notificatio
       // Save images to local folder
       const saveResult = await saveImagesToLocalFolder(libraryImages);
 
-      if (saveResult.success) {
-        setIsSent(true);
-        toast({
-          title: "Selection Finalized",
-          description: `Successfully saved ${saveResult.count} images to: ${saveResult.path}`,
-        });
-      } else {
+      if (!saveResult.success) {
         throw new Error(saveResult.error);
       }
+
+      // Send email notification
+      const notifyResponse = await fetch('/api/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'complete', message: message }),
+      });
+
+      if (!notifyResponse.ok) {
+        throw new Error('Failed to send email notification');
+      }
+
+      setIsSent(true);
+      toast({
+        title: "Selection Finalized",
+        description: `Successfully saved ${saveResult.count} images and notified developers.`,
+      });
     } catch (error) {
       console.error("Failed to finalize selection:", error);
       toast({
