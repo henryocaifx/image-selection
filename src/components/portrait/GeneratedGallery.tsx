@@ -9,6 +9,7 @@ import Image from 'next/image';
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 
@@ -74,6 +75,7 @@ export function GeneratedGallery({
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-3xl border-none p-0 overflow-hidden bg-transparent shadow-none">
+                      <DialogTitle className="sr-only">Portrait Preview</DialogTitle>
                       <div className="relative aspect-[3/4] w-full max-h-[90vh]">
                          <Image src={url} alt="Large preview" fill className="object-contain" />
                       </div>
@@ -101,7 +103,7 @@ export function GeneratedGallery({
           );
         })}
 
-        {isGenerating && Array.from({ length: 3 }).map((_, i) => (
+        {isGenerating && Array.from({ length: 2 }).map((_, i) => (
           <Card key={`skeleton-${i}`} className="aspect-[3/4] bg-muted animate-pulse rounded-lg border-none flex items-center justify-center">
              <Loader2 className="w-8 h-8 text-primary/40 animate-spin" />
           </Card>

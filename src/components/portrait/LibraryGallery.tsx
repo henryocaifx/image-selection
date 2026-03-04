@@ -9,6 +9,7 @@ import Image from 'next/image';
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 
@@ -48,6 +49,7 @@ export function LibraryGallery({ images, onRemove }: LibraryGalleryProps) {
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-2xl p-0 bg-transparent border-none shadow-none">
+                     <DialogTitle className="sr-only">Library Image Preview</DialogTitle>
                      <div className="relative aspect-[3/4] w-full">
                        <Image src={url} alt="Full resolution" fill className="object-contain" />
                      </div>
