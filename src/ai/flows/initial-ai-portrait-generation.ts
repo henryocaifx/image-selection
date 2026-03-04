@@ -1,7 +1,7 @@
 'use server';
 /**
  * @fileOverview This file implements a Genkit flow for initial AI portrait generation.
- * It takes a single front-facing image of a person and generates a high-quality professional portrait.
+ * It takes a single front-facing image of a person and generates a batch of high-quality professional portraits.
  */
 
 import {ai} from '@/ai/genkit';
@@ -48,32 +48,34 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
   },
   async input => {
     const results: {url: string, description: string}[] = [];
+    const count = 3; // Generate 3 initial portraits for a better starting experience
 
-    try {
-      // Generate a single high-quality portrait to ensure speed and reliability
-      const {media} = await ai.generate({
-        model: 'googleai/gemini-2.5-flash-image',
-        prompt: [
-          {media: {url: input.photoDataUri}},
-          {text: "Using the person in the image as the reference, generate a professional close-up headshot with studio lighting. Maintain the exact same facial features and identity. Output only the generated photo-realistic image."},
-        ],
-        config: {
-          responseModalities: ['TEXT', 'IMAGE'],
-          safetySettings: [
-            { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
-            { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-            { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' },
+    for (let i = 0; i < count; i++) {
+      try {
+        const {media} = await ai.generate({
+          model: 'googleai/gemini-2.5-flash-image',
+          prompt: [
+            {media: {url: input.photoDataUri}},
+            {text: "Using the person in the image as the reference, generate a professional close-up headshot. EXACT SAME PERSON. Variation " + (i + 1) + ". Professional lighting, photorealistic. Output only the generated image."},
           ],
-        },
-      });
+          config: {
+            responseModalities: ['TEXT', 'IMAGE'],
+            safetySettings: [
+              { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+              { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+              { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+              { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+              { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' },
+            ],
+          },
+        });
 
-      if (media && media.url) {
-        results.push({url: media.url, description: 'Professional Studio Headshot'});
+        if (media && media.url) {
+          results.push({url: media.url, description: `Portrait Variation ${i + 1}`});
+        }
+      } catch (error) {
+        console.error(`Initial generation iteration ${i} failed:`, error);
       }
-    } catch (error) {
-      console.error('Initial generation failed:', error);
     }
 
     return {generatedImages: results};

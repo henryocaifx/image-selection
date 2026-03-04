@@ -37,7 +37,7 @@ export function GeneratedGallery({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold font-headline">AI Generation Results</h2>
-          <p className="text-muted-foreground">Preview and select the portraits you love.</p>
+          <p className="text-muted-foreground">Preview and select the portraits you love. ({images.length} generated)</p>
         </div>
         {images.length > 0 && (
           <Button 
@@ -46,12 +46,12 @@ export function GeneratedGallery({
             className="bg-secondary hover:bg-secondary/80 border border-primary/20"
           >
             {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
-            Generate 5 More
+            Generate More Variations
           </Button>
         )}
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {images.map((url, idx) => {
           const isSelected = libraryImages.includes(url);
           return (
@@ -101,7 +101,7 @@ export function GeneratedGallery({
           );
         })}
 
-        {isGenerating && Array.from({ length: 5 }).map((_, i) => (
+        {isGenerating && Array.from({ length: 3 }).map((_, i) => (
           <Card key={`skeleton-${i}`} className="aspect-[3/4] bg-muted animate-pulse rounded-lg border-none flex items-center justify-center">
              <Loader2 className="w-8 h-8 text-primary/40 animate-spin" />
           </Card>

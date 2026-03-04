@@ -42,7 +42,8 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
   },
   async (input) => {
     const generatedImages: string[] = [];
-    const numToGenerate = Math.min(input.count, 1); // Limit to 1 for reliability
+    // Limit to 4 per call to avoid timeouts while still providing bulk results
+    const numToGenerate = Math.min(input.count, 4); 
 
     for (let i = 0; i < numToGenerate; i++) {
       try {
@@ -50,7 +51,7 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
           model: 'googleai/gemini-2.5-flash-image',
           prompt: [
             { media: { url: input.photoDataUri } },
-            { text: "Generate a new variation of this person in a business setting. Keep the identity identical. High resolution, professional portrait." },
+            { text: "Generate a new variation of this EXACT SAME PERSON in a professional setting. High resolution, professional portrait, cinematic lighting." },
           ],
           config: {
             responseModalities: ['TEXT', 'IMAGE'],

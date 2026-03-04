@@ -32,7 +32,7 @@ export default function PortraitProApp() {
         setGeneratedImages(urls);
         toast({
           title: "Portraits Ready",
-          description: "We've successfully generated your first AI portrait!",
+          description: `Generated ${urls.length} initial portraits for you.`,
         });
       } else {
         toast({
@@ -58,20 +58,21 @@ export default function PortraitProApp() {
     
     setIsGenerating(true);
     try {
+      // Request 4 more images per click
       const newUrls = await generateAdditionalPortraits({ 
         photoDataUri: sourceImage, 
-        count: 1 
+        count: 4 
       });
       if (newUrls && newUrls.length > 0) {
         setGeneratedImages(prev => [...prev, ...newUrls]);
         toast({
-          title: "Variation Added",
-          description: "Successfully added a new portrait variation.",
+          title: "Variations Added",
+          description: `Successfully added ${newUrls.length} new portrait variations.`,
         });
       } else {
         toast({
           title: "Notice",
-          description: "Could not generate a new variation at this time.",
+          description: "Could not generate new variations at this time.",
           variant: "destructive",
         });
       }
@@ -142,7 +143,7 @@ export default function PortraitProApp() {
                 {isGenerating ? (
                   <>
                     <Loader2 className="mr-3 h-6 w-6 animate-spin" />
-                    Analyzing Photo...
+                    Generating Batch...
                   </>
                 ) : (
                   <>
@@ -162,7 +163,7 @@ export default function PortraitProApp() {
               onAddToLibrary={addToLibrary}
               onGenerateMore={handleGenerateMore}
               isGenerating={isGenerating}
-              canGenerateMore={generatedImages.length < 10}
+              canGenerateMore={generatedImages.length < 12}
            />
            
            <LibraryGallery 
