@@ -58,10 +58,10 @@ export default function PortraitProApp() {
 
     setIsGenerating(true);
     try {
-      // Request 4 more images per click
+      // Request 10 more images per click
       const newUrls = await generateAdditionalPortraits({
         photoDataUri: sourceImage,
-        count: 3
+        count: 10
       });
       if (newUrls && newUrls.length > 0) {
         setGeneratedImages(prev => [...prev, ...newUrls]);
@@ -163,7 +163,7 @@ export default function PortraitProApp() {
             onAddToLibrary={addToLibrary}
             onGenerateMore={handleGenerateMore}
             isGenerating={isGenerating}
-            canGenerateMore={generatedImages.length < 20}
+            canGenerateMore={generatedImages.length < 100}
           />
 
           <LibraryGallery

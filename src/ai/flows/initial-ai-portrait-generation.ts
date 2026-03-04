@@ -48,7 +48,7 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
   },
   async input => {
     const results: { url: string, description: string }[] = [];
-    const count = 5; // Generate 5 initial portraits as requested
+    const count = 30; // Generate 30 initial portraits as requested
 
     const prompts = [
       "Using the person in the image as the reference, generate a professional close-up headshot, front-facing. EXACT SAME PERSON. Professional lighting, photorealistic.",

@@ -16,7 +16,7 @@ const OnDemandAIPortraitGenerationInputSchema = z.object({
     .number()
     .int()
     .positive()
-    .default(1)
+    .default(10)
     .describe('The number of additional varied portrait images to generate.'),
 });
 export type OnDemandAIPortraitGenerationInput = z.infer<
@@ -42,7 +42,7 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
   },
   async (input) => {
     const generatedImages: string[] = [];
-    // Requested count (usually 3)
+    // Requested count (usually 10)
     const numToGenerate = input.count;
 
     const variationPrompts = [
