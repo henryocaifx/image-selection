@@ -1,10 +1,6 @@
 'use server';
 /**
  * @fileOverview A Genkit flow for generating additional varied portrait images based on an uploaded photo.
- *
- * - generateAdditionalPortraits - A function that handles the generation of additional portrait images.
- * - OnDemandAIPortraitGenerationInput - The input type for the generateAdditionalPortraits function.
- * - OnDemandAIPortraitGenerationOutput - The return type for the generateAdditionalPortraits function.
  */
 
 import { ai } from '@/ai/genkit';
@@ -14,26 +10,20 @@ const OnDemandAIPortraitGenerationInputSchema = z.object({
   photoDataUri: z
     .string()
     .describe(
-      "A photo of a person's front face, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+      "A photo of a person's front face as a data URI."
     ),
   count: z
     .number()
     .int()
     .positive()
-    .default(3)
+    .default(1)
     .describe('The number of additional varied portrait images to generate.'),
 });
 export type OnDemandAIPortraitGenerationInput = z.infer<
   typeof OnDemandAIPortraitGenerationInputSchema
 >;
 
-const OnDemandAIPortraitGenerationOutputSchema = z.array(
-  z
-    .string()
-    .describe(
-      "A generated portrait image as a data URI that includes a MIME type and uses Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
-    )
-);
+const OnDemandAIPortraitGenerationOutputSchema = z.array(z.string());
 export type OnDemandAIPortraitGenerationOutput = z.infer<
   typeof OnDemandAIPortraitGenerationOutputSchema
 >;
@@ -44,14 +34,6 @@ export async function generateAdditionalPortraits(
   return onDemandAIPortraitGenerationFlow(input);
 }
 
-const variationPrompts = [
-  'professional outdoor headshot with natural sunlight',
-  'creative studio portrait with dramatic rim lighting',
-  'confident business profile photo',
-  'natural laughing candid portrait in a cafe',
-  'clean corporate headshot on white background',
-];
-
 const onDemandAIPortraitGenerationFlow = ai.defineFlow(
   {
     name: 'onDemandAIPortraitGenerationFlow',
@@ -60,17 +42,15 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
   },
   async (input) => {
     const generatedImages: string[] = [];
-    const numToGenerate = Math.min(input.count, 2); 
+    const numToGenerate = Math.min(input.count, 1); // Limit to 1 for reliability
 
     for (let i = 0; i < numToGenerate; i++) {
-      const promptText = variationPrompts[Math.floor(Math.random() * variationPrompts.length)];
-
       try {
         const { media } = await ai.generate({
           model: 'googleai/gemini-2.5-flash-image',
           prompt: [
             { media: { url: input.photoDataUri } },
-            { text: `Using the subject in the attached image as a direct reference, generate a ${promptText}. Maintain identical facial structure and features. The output must be a photo-realistic portrait.` },
+            { text: "Generate a new variation of this person in a business setting. Keep the identity identical. High resolution, professional portrait." },
           ],
           config: {
             responseModalities: ['TEXT', 'IMAGE'],
@@ -88,7 +68,7 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
           generatedImages.push(media.url);
         }
       } catch (error) {
-        console.warn(`On-demand generation failed for iteration ${i}`, error);
+        console.error('On-demand generation failed:', error);
       }
     }
     return generatedImages;
