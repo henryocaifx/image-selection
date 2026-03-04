@@ -11,7 +11,6 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {googleAI} from '@genkit-ai/google-genai';
 
 const InitialAIPortraitGenerationInputSchema = z.object({
   photoDataUri: z
@@ -55,42 +54,56 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
     outputSchema: InitialAIPortraitGenerationOutputSchema,
   },
   async input => {
-    // Reduced count to ensure reliability and avoid timeouts
+    // We generate 3 images initially to stay well within timeout limits
     const generationPrompts = [
-      'generate a professional full body portrait from the front view',
-      'generate a professional half body portrait from a three-quarter angle',
-      'generate a professional close-up headshot looking at camera',
-      'generate a professional portrait from the side view',
-      'generate a creative and dynamic professional portrait'
+      'a professional full body portrait from the front view',
+      'a professional half body portrait from a three-quarter angle',
+      'a professional close-up headshot looking at camera'
     ];
 
-    const generationPromises = generationPrompts.map(async description => {
+    const results: {url: string, description: string}[] = [];
+
+    // Generate sequentially to avoid hitting rate limits or timeouts in parallel
+    for (const description of generationPrompts) {
       try {
         const {media} = await ai.generate({
           model: 'googleai/gemini-2.5-flash-image',
           prompt: [
             {media: {url: input.photoDataUri}},
-            {text: `Based on the provided image, ${description}. Ensure the person maintains their likeness but with the specified angle and composition. High quality professional lighting.`},
+            {text: `Look at the person in the provided image. Generate a new high-quality professional portrait of THIS SAME PERSON. The new image should be: ${description}. Maintain the same facial features, hair style, and identity. Use professional studio lighting.`},
           ],
           config: {
             responseModalities: ['TEXT', 'IMAGE'],
+            safetySettings: [
+              {
+                category: 'HARM_CATEGORY_HATE_SPEECH',
+                threshold: 'BLOCK_ONLY_HIGH',
+              },
+              {
+                category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+                threshold: 'BLOCK_ONLY_HIGH',
+              },
+              {
+                category: 'HARM_CATEGORY_HARASSMENT',
+                threshold: 'BLOCK_ONLY_HIGH',
+              },
+              {
+                category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+                threshold: 'BLOCK_ONLY_HIGH',
+              },
+            ],
           },
         });
 
-        if (!media || !media.url) {
-          return null;
+        if (media && media.url) {
+          results.push({url: media.url, description: description});
         }
-
-        return {url: media.url, description: description};
       } catch (error) {
+        // Silently skip failed individual generations to return what we have
         console.error(`Generation error for ${description}:`, error);
-        return null;
       }
-    });
+    }
 
-    const results = await Promise.all(generationPromises);
-    const validImages = results.filter((img): img is {url: string, description: string} => img !== null);
-
-    return {generatedImages: validImages};
+    return {generatedImages: results};
   }
 );

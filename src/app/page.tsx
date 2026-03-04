@@ -27,7 +27,7 @@ export default function PortraitProApp() {
     
     try {
       const result = await initialAIPortraitGeneration({ photoDataUri: sourceImage });
-      if (result.generatedImages.length > 0) {
+      if (result.generatedImages && result.generatedImages.length > 0) {
         const urls = result.generatedImages.map(img => img.url);
         setGeneratedImages(urls);
         toast({
@@ -35,13 +35,17 @@ export default function PortraitProApp() {
           description: `Generated ${urls.length} professional portraits for you.`,
         });
       } else {
-        throw new Error("No images were generated");
+        toast({
+          title: "Try Again",
+          description: "The AI couldn't generate portraits from this photo. Try a clearer headshot with good lighting.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error(error);
       toast({
         title: "Generation Failed",
-        description: "The AI was unable to process your photo. Please try a clearer image.",
+        description: "An unexpected error occurred. Please try again later.",
         variant: "destructive",
       });
     } finally {
@@ -56,7 +60,7 @@ export default function PortraitProApp() {
     try {
       const newUrls = await generateAdditionalPortraits({ 
         photoDataUri: sourceImage, 
-        count: 5 
+        count: 3 
       });
       if (newUrls.length > 0) {
         setGeneratedImages(prev => [...prev, ...newUrls]);
@@ -181,7 +185,7 @@ export default function PortraitProApp() {
         <div className="flex flex-col gap-4">
           <div className="flex justify-center gap-8 mb-4">
              <div className="flex flex-col items-center">
-                <span className="text-2xl font-bold text-white">Mult-Angle</span>
+                <span className="text-2xl font-bold text-white">Multi-Angle</span>
                 <span>Composition</span>
              </div>
              <div className="flex flex-col items-center">
