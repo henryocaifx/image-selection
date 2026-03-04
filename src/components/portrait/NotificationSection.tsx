@@ -6,12 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { saveImagesToLocalFolder } from '@/lib/storage-actions';
 
 interface NotificationSectionProps {
   libraryCount: number;
+  libraryImages: string[];
 }
 
-export function NotificationSection({ libraryCount }: NotificationSectionProps) {
+export function NotificationSection({ libraryCount, libraryImages }: NotificationSectionProps) {
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isSent, setIsSent] = useState(false);
@@ -28,15 +30,29 @@ export function NotificationSection({ libraryCount }: NotificationSectionProps) 
     }
 
     setIsSending(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsSending(false);
-    setIsSent(true);
-    
-    toast({
-      title: "Notification Sent",
-      description: "Developers have been notified that your selection is ready.",
-    });
+    try {
+      // Save images to local folder
+      const saveResult = await saveImagesToLocalFolder(libraryImages);
+
+      if (saveResult.success) {
+        setIsSent(true);
+        toast({
+          title: "Selection Finalized",
+          description: `Successfully saved ${saveResult.count} images to: ${saveResult.path}`,
+        });
+      } else {
+        throw new Error(saveResult.error);
+      }
+    } catch (error) {
+      console.error("Failed to finalize selection:", error);
+      toast({
+        title: "Submission Error",
+        description: "There was a problem saving your images locally.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSending(false);
+    }
   };
 
   if (isSent) {
@@ -70,14 +86,14 @@ export function NotificationSection({ libraryCount }: NotificationSectionProps) 
       <CardContent className="p-6 space-y-4">
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground">Custom Message (Optional)</label>
-          <Textarea 
+          <Textarea
             placeholder="Add any specific feedback or notes for the developers..."
             className="min-h-[100px] bg-background/50 border-primary/10 focus:border-primary/50 transition-colors"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
           />
         </div>
-        <Button 
+        <Button
           className="w-full h-12 bg-primary text-primary-foreground font-bold text-lg hover:shadow-primary/20 shadow-xl"
           onClick={handleNotify}
           disabled={isSending || libraryCount === 0}

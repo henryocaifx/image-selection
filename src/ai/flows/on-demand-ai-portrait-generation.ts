@@ -42,16 +42,27 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
   },
   async (input) => {
     const generatedImages: string[] = [];
-    // Limit to 4 per call to avoid timeouts while still providing bulk results
-    const numToGenerate = Math.min(input.count, 4); 
+    // Requested count (usually 3)
+    const numToGenerate = input.count;
+
+    const variationPrompts = [
+      "Generate a professional headshot of this EXACT SAME PERSON from a slight side profile angle. High resolution, cinematic lighting.",
+      "Generate a professional half-body shot of this EXACT SAME PERSON. High resolution, professional setting, sharp focus.",
+      "Generate a professional full-body shot of this EXACT SAME PERSON. High resolution, consistent identity, realistic texture.",
+      "Generate a professional portrait of this EXACT SAME PERSON with a warm, natural lighting and a 3/4 face view.",
+      "Generate a professional candid-style portrait of this EXACT SAME PERSON in a business casual environment."
+    ];
 
     for (let i = 0; i < numToGenerate; i++) {
       try {
+        // Use a random prompt or cycle through them for variety
+        const promptText = variationPrompts[Math.floor(Math.random() * variationPrompts.length)];
+
         const { media } = await ai.generate({
           model: 'googleai/gemini-2.5-flash-image',
           prompt: [
             { media: { url: input.photoDataUri } },
-            { text: "Generate a new variation of this EXACT SAME PERSON in a professional setting. High resolution, professional portrait, cinematic lighting." },
+            { text: promptText },
           ],
           config: {
             responseModalities: ['TEXT', 'IMAGE'],

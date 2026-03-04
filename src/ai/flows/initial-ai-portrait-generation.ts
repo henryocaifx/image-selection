@@ -4,8 +4,8 @@
  * It takes a single front-facing image of a person and generates a batch of high-quality professional portraits.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
 const InitialAIPortraitGenerationInputSchema = z.object({
   photoDataUri: z
@@ -47,16 +47,24 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
     outputSchema: InitialAIPortraitGenerationOutputSchema,
   },
   async input => {
-    const results: {url: string, description: string}[] = [];
-    const count = 3; // Generate 3 initial portraits for a better starting experience
+    const results: { url: string, description: string }[] = [];
+    const count = 5; // Generate 5 initial portraits as requested
+
+    const prompts = [
+      "Using the person in the image as the reference, generate a professional close-up headshot, front-facing. EXACT SAME PERSON. Professional lighting, photorealistic.",
+      "Using the person in the image as the reference, generate a professional close-up headshot with a 45-degree face angle. EXACT SAME PERSON. Professional lighting, photorealistic.",
+      "Using the person in the image as the reference, generate a professional half-body portrait. EXACT SAME PERSON. Professional lighting, photorealistic.",
+      "Using the person in the image as the reference, generate a professional full-body portrait. EXACT SAME PERSON. Professional lighting, photorealistic.",
+      "Using the person in the image as the reference, generate a professional portrait from a different side angle. EXACT SAME PERSON. Professional lighting, photorealistic.",
+    ];
 
     for (let i = 0; i < count; i++) {
       try {
-        const {media} = await ai.generate({
+        const { media } = await ai.generate({
           model: 'googleai/gemini-2.5-flash-image',
           prompt: [
-            {media: {url: input.photoDataUri}},
-            {text: "Using the person in the image as the reference, generate a professional close-up headshot. EXACT SAME PERSON. Variation " + (i + 1) + ". Professional lighting, photorealistic. Output only the generated image."},
+            { media: { url: input.photoDataUri } },
+            { text: prompts[i % prompts.length] },
           ],
           config: {
             responseModalities: ['TEXT', 'IMAGE'],
@@ -71,13 +79,13 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
         });
 
         if (media && media.url) {
-          results.push({url: media.url, description: `Portrait Variation ${i + 1}`});
+          results.push({ url: media.url, description: `Portrait Variation ${i + 1}` });
         }
       } catch (error) {
         console.error(`Initial generation iteration ${i} failed:`, error);
       }
     }
 
-    return {generatedImages: results};
+    return { generatedImages: results };
   }
 );

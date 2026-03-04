@@ -21,10 +21,10 @@ export default function PortraitProApp() {
 
   const handleStartGeneration = async () => {
     if (!sourceImage) return;
-    
+
     setIsGenerating(true);
     setGeneratedImages([]);
-    
+
     try {
       const result = await initialAIPortraitGeneration({ photoDataUri: sourceImage });
       if (result && result.generatedImages && result.generatedImages.length > 0) {
@@ -55,13 +55,13 @@ export default function PortraitProApp() {
 
   const handleGenerateMore = async () => {
     if (!sourceImage) return;
-    
+
     setIsGenerating(true);
     try {
       // Request 4 more images per click
-      const newUrls = await generateAdditionalPortraits({ 
-        photoDataUri: sourceImage, 
-        count: 4 
+      const newUrls = await generateAdditionalPortraits({
+        photoDataUri: sourceImage,
+        count: 3
       });
       if (newUrls && newUrls.length > 0) {
         setGeneratedImages(prev => [...prev, ...newUrls]);
@@ -125,18 +125,18 @@ export default function PortraitProApp() {
 
       <main className="space-y-20">
         <section className="max-w-3xl mx-auto space-y-8">
-          <ImageUploader 
-            uploadedImage={sourceImage} 
-            onImageUpload={setSourceImage} 
+          <ImageUploader
+            uploadedImage={sourceImage}
+            onImageUpload={setSourceImage}
             onClear={clearSource}
             isGenerating={isGenerating}
           />
-          
+
           {sourceImage && generatedImages.length === 0 && (
             <div className="flex justify-center">
-              <Button 
-                size="lg" 
-                onClick={handleStartGeneration} 
+              <Button
+                size="lg"
+                onClick={handleStartGeneration}
                 disabled={isGenerating}
                 className="h-16 px-12 bg-primary text-primary-foreground font-bold text-xl rounded-full shadow-2xl hover:scale-105 transition-all"
               >
@@ -157,32 +157,35 @@ export default function PortraitProApp() {
         </section>
 
         <section className="space-y-12">
-           <GeneratedGallery 
-              images={generatedImages} 
-              libraryImages={libraryImages}
-              onAddToLibrary={addToLibrary}
-              onGenerateMore={handleGenerateMore}
-              isGenerating={isGenerating}
-              canGenerateMore={generatedImages.length < 12}
-           />
-           
-           <LibraryGallery 
-              images={libraryImages} 
-              onRemove={removeFromLibrary}
-           />
+          <GeneratedGallery
+            images={generatedImages}
+            libraryImages={libraryImages}
+            onAddToLibrary={addToLibrary}
+            onGenerateMore={handleGenerateMore}
+            isGenerating={isGenerating}
+            canGenerateMore={generatedImages.length < 20}
+          />
+
+          <LibraryGallery
+            images={libraryImages}
+            onRemove={removeFromLibrary}
+          />
         </section>
 
         {libraryImages.length > 0 && (
           <section className="py-12">
-            <NotificationSection libraryCount={libraryImages.length} />
+            <NotificationSection
+              libraryCount={libraryImages.length}
+              libraryImages={libraryImages}
+            />
           </section>
         )}
       </main>
 
       <footer className="pt-20 pb-8 text-center text-muted-foreground border-t border-primary/5 text-sm">
-        <p>© {new Date().getFullYear()} PortraitPro Studio. AI Powered Imagery.</p>
+        <p>© {new Date().getFullYear()} One Cool AIFX.</p>
       </footer>
-      
+
       <Toaster />
     </div>
   );
