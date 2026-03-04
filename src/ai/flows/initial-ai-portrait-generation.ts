@@ -54,42 +54,30 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
     outputSchema: InitialAIPortraitGenerationOutputSchema,
   },
   async input => {
-    // We generate 2 high-quality portraits initially to ensure completion within server action timeouts
+    // Generate 2 high-quality portraits sequentially to maximize success rate
     const generationPrompts = [
-      'a high-resolution professional close-up headshot of the person from the reference image, looking directly at the camera, studio lighting, neutral background',
-      'a professional half-body business portrait of the person from the reference image, three-quarter view, sophisticated office environment in background, warm lighting'
+      'professional close-up headshot, studio lighting, neutral background',
+      'professional business portrait, three-quarter view, modern office background'
     ];
 
     const results: {url: string, description: string}[] = [];
 
-    // Generate sequentially to ensure the first one succeeds even if subsequent ones hit limits
     for (const description of generationPrompts) {
       try {
         const {media} = await ai.generate({
           model: 'googleai/gemini-2.5-flash-image',
           prompt: [
             {media: {url: input.photoDataUri}},
-            {text: `Identify the person in this image. Generate a new, separate professional portrait of THIS EXACT PERSON. ${description}. Maintain their unique facial features, hairstyle, and eye color exactly. The result MUST be a photo-realistic portrait.`},
+            {text: `Using the subject in the attached image as the direct reference, generate a ${description}. Maintain identical facial features, hair, and eye color. The output must be a photo-realistic portrait.`},
           ],
           config: {
             responseModalities: ['TEXT', 'IMAGE'],
             safetySettings: [
-              {
-                category: 'HARM_CATEGORY_HATE_SPEECH',
-                threshold: 'BLOCK_NONE',
-              },
-              {
-                category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-                threshold: 'BLOCK_NONE',
-              },
-              {
-                category: 'HARM_CATEGORY_HARASSMENT',
-                threshold: 'BLOCK_NONE',
-              },
-              {
-                category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-                threshold: 'BLOCK_ONLY_HIGH',
-              },
+              { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+              { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+              { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+              { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+              { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' },
             ],
           },
         });
@@ -98,7 +86,7 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
           results.push({url: media.url, description: description});
         }
       } catch (error) {
-        console.error(`Generation error for ${description}:`, error);
+        console.warn(`Generation failed for prompt: ${description}`, error);
       }
     }
 

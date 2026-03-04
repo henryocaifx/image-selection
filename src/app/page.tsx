@@ -27,7 +27,7 @@ export default function PortraitProApp() {
     
     try {
       const result = await initialAIPortraitGeneration({ photoDataUri: sourceImage });
-      if (result.generatedImages && result.generatedImages.length > 0) {
+      if (result && result.generatedImages && result.generatedImages.length > 0) {
         const urls = result.generatedImages.map(img => img.url);
         setGeneratedImages(urls);
         toast({
@@ -36,16 +36,16 @@ export default function PortraitProApp() {
         });
       } else {
         toast({
-          title: "Try Again",
-          description: "The AI couldn't generate portraits from this photo. Try a clearer headshot with good lighting.",
+          title: "Generation Notice",
+          description: "The AI was unable to generate images from this photo. Please ensure your face is clearly visible and looking at the camera.",
           variant: "destructive",
         });
       }
     } catch (error) {
-      console.error(error);
+      console.error("Client side generation error:", error);
       toast({
-        title: "Generation Failed",
-        description: "An unexpected error occurred. Please try again later.",
+        title: "Connection Error",
+        description: "There was a problem reaching the AI server. Please try again in a moment.",
         variant: "destructive",
       });
     } finally {
@@ -60,20 +60,26 @@ export default function PortraitProApp() {
     try {
       const newUrls = await generateAdditionalPortraits({ 
         photoDataUri: sourceImage, 
-        count: 3 
+        count: 2 
       });
-      if (newUrls.length > 0) {
+      if (newUrls && newUrls.length > 0) {
         setGeneratedImages(prev => [...prev, ...newUrls]);
         toast({
           title: "Added Portraits",
           description: `Added ${newUrls.length} more variations to your gallery.`,
         });
+      } else {
+        toast({
+          title: "Limited Results",
+          description: "Could not generate additional variations at this time.",
+          variant: "destructive",
+        });
       }
     } catch (error) {
-      console.error(error);
+      console.error("Additional generation error:", error);
       toast({
-        title: "Failed to Generate More",
-        description: "Could not add more images at this time.",
+        title: "Process Failed",
+        description: "Could not add more images. Please check your connection.",
         variant: "destructive",
       });
     } finally {
@@ -142,7 +148,7 @@ export default function PortraitProApp() {
                 {isGenerating ? (
                   <>
                     <Loader2 className="mr-3 h-6 w-6 animate-spin" />
-                    Generating Portraits...
+                    Generating...
                   </>
                 ) : (
                   <>
@@ -163,7 +169,7 @@ export default function PortraitProApp() {
               onAddToLibrary={addToLibrary}
               onGenerateMore={handleGenerateMore}
               isGenerating={isGenerating}
-              canGenerateMore={generatedImages.length < 50}
+              canGenerateMore={generatedImages.length < 20}
            />
            
            <LibraryGallery 

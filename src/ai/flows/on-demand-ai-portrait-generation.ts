@@ -45,11 +45,11 @@ export async function generateAdditionalPortraits(
 }
 
 const variationPrompts = [
-  'Generate a professional outdoor headshot of this person with natural sunlight and a blurred garden background.',
-  'Generate a creative studio portrait of this person with dramatic rim lighting and a dark gray background.',
-  'Generate a professional speaker profile photo of this person wearing business casual attire, slightly tilted head, looking confident.',
-  'Generate a candid-style professional portrait of this person laughing naturally in a modern cafe setting.',
-  'Generate a high-end corporate headshot of this person with clean white background and sharp focus.',
+  'professional outdoor headshot with natural sunlight',
+  'creative studio portrait with dramatic rim lighting',
+  'confident business profile photo',
+  'natural laughing candid portrait in a cafe',
+  'clean corporate headshot on white background',
 ];
 
 const onDemandAIPortraitGenerationFlow = ai.defineFlow(
@@ -60,7 +60,6 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
   },
   async (input) => {
     const generatedImages: string[] = [];
-    // Limit to 2 per request for maximum stability
     const numToGenerate = Math.min(input.count, 2); 
 
     for (let i = 0; i < numToGenerate; i++) {
@@ -71,27 +70,16 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
           model: 'googleai/gemini-2.5-flash-image',
           prompt: [
             { media: { url: input.photoDataUri } },
-            { text: `Based on the provided image, generate a new high-quality photo-realistic portrait of the EXACT SAME PERSON. ${promptText} Maintain identical facial structure and hair.` },
+            { text: `Using the subject in the attached image as a direct reference, generate a ${promptText}. Maintain identical facial structure and features. The output must be a photo-realistic portrait.` },
           ],
           config: {
             responseModalities: ['TEXT', 'IMAGE'],
             safetySettings: [
-              {
-                category: 'HARM_CATEGORY_HATE_SPEECH',
-                threshold: 'BLOCK_NONE',
-              },
-              {
-                category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-                threshold: 'BLOCK_NONE',
-              },
-              {
-                category: 'HARM_CATEGORY_HARASSMENT',
-                threshold: 'BLOCK_NONE',
-              },
-              {
-                category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-                threshold: 'BLOCK_ONLY_HIGH',
-              },
+              { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+              { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+              { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+              { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+              { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' },
             ],
           },
         });
@@ -100,7 +88,7 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
           generatedImages.push(media.url);
         }
       } catch (error) {
-        console.warn(`Image generation failed for iteration ${i}:`, error);
+        console.warn(`On-demand generation failed for iteration ${i}`, error);
       }
     }
     return generatedImages;
