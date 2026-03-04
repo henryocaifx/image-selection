@@ -61,7 +61,7 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
     for (let i = 0; i < count; i++) {
       try {
         const { media } = await ai.generate({
-          model: 'googleai/gemini-2.5-flash-image',
+          model: 'vertexai/gemini-2.5-flash-image',
           prompt: [
             { media: { url: input.photoDataUri } },
             { text: prompts[i % prompts.length] },
