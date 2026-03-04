@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import Image from 'next/image';
-import { Sparkles, Loader2, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
@@ -144,10 +144,7 @@ export default function PortraitProApp() {
                 className="h-16 px-12 bg-primary text-primary-foreground font-bold text-xl rounded-full shadow-2xl hover:scale-105 transition-all"
               >
                 {isGenerating ? (
-                  <>
-                    <Loader2 className="mr-3 h-6 w-6 animate-spin" />
-                    Generating Batch...
-                  </>
+                  "Generating Batch..."
                 ) : (
                   <>
                     Generate My Portraits

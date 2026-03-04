@@ -59,7 +59,7 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
         const promptText = variationPrompts[Math.floor(Math.random() * variationPrompts.length)];
 
         const { media } = await ai.generate({
-          model: 'vertexai/gemini-2.5-flash-image',
+          model: 'vertexai/gemini-3.1-flash-image-preview',
           prompt: [
             { media: { url: input.photoDataUri } },
             { text: promptText },

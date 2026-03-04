@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Plus, Check, Loader2, Maximize2 } from 'lucide-react';
+import { Plus, Check, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -22,15 +22,15 @@ interface GeneratedGalleryProps {
   canGenerateMore: boolean;
 }
 
-export function GeneratedGallery({ 
-  images, 
-  libraryImages, 
-  onAddToLibrary, 
-  onGenerateMore, 
+export function GeneratedGallery({
+  images,
+  libraryImages,
+  onAddToLibrary,
+  onGenerateMore,
   isGenerating,
   canGenerateMore
 }: GeneratedGalleryProps) {
-  
+
   if (images.length === 0 && !isGenerating) return null;
 
   return (
@@ -41,13 +41,13 @@ export function GeneratedGallery({
           <p className="text-muted-foreground">Preview and select the portraits you love. ({images.length} generated)</p>
         </div>
         {images.length > 0 && (
-          <Button 
-            onClick={onGenerateMore} 
+          <Button
+            onClick={onGenerateMore}
             disabled={isGenerating || !canGenerateMore}
             className="bg-secondary hover:bg-secondary/80 border border-primary/20"
           >
-            {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
-            Generate More Variations
+            <Plus className="mr-2 h-4 w-4" />
+            {isGenerating ? "Generating..." : "Generate More Variations"}
           </Button>
         )}
       </div>
@@ -58,14 +58,14 @@ export function GeneratedGallery({
           return (
             <Card key={idx} className="relative group overflow-hidden bg-muted/20 border-none image-grid-item">
               <div className="aspect-[3/4] relative">
-                <Image 
-                  src={url} 
-                  alt={`Generated portrait ${idx + 1}`} 
-                  fill 
+                <Image
+                  src={url}
+                  alt={`Generated portrait ${idx + 1}`}
+                  fill
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                   sizes="(max-width: 768px) 50vw, 20vw"
                 />
-                
+
                 {/* Overlay actions */}
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                   <Dialog>
@@ -77,14 +77,14 @@ export function GeneratedGallery({
                     <DialogContent className="max-w-3xl border-none p-0 overflow-hidden bg-transparent shadow-none">
                       <DialogTitle className="sr-only">Portrait Preview</DialogTitle>
                       <div className="relative aspect-[3/4] w-full max-h-[90vh]">
-                         <Image src={url} alt="Large preview" fill className="object-contain" />
+                        <Image src={url} alt="Large preview" fill className="object-contain" />
                       </div>
                     </DialogContent>
                   </Dialog>
 
-                  <Button 
-                    size="icon" 
-                    variant={isSelected ? "default" : "secondary"} 
+                  <Button
+                    size="icon"
+                    variant={isSelected ? "default" : "secondary"}
                     className={`rounded-full ${isSelected ? "bg-primary text-primary-foreground" : ""}`}
                     onClick={() => onAddToLibrary(url)}
                     disabled={isSelected}
@@ -103,11 +103,11 @@ export function GeneratedGallery({
           );
         })}
 
-        {isGenerating && Array.from({ length: 2 }).map((_, i) => (
-          <Card key={`skeleton-${i}`} className="aspect-[3/4] bg-muted animate-pulse rounded-lg border-none flex items-center justify-center">
-             <Loader2 className="w-8 h-8 text-primary/40 animate-spin" />
+        {isGenerating && (
+          <Card key="skeleton" className="aspect-[3/4] bg-muted animate-pulse rounded-lg border-none flex items-center justify-center">
+            <div className="w-8 h-1 bg-primary/20 rounded-full" />
           </Card>
-        ))}
+        )}
       </div>
     </div>
   );
