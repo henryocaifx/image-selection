@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useCallback } from 'react';
+import Image from 'next/image';
 import { Sparkles, Loader2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/toaster';
@@ -109,14 +110,16 @@ export default function PortraitProApp() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
-      <header className="flex flex-col items-center text-center gap-4">
-        <div className="flex items-center gap-3 bg-secondary/30 px-6 py-2 rounded-full border border-primary/20 backdrop-blur-sm">
-          <Sparkles className="w-5 h-5 text-primary" />
-          <span className="text-primary font-semibold tracking-wider uppercase text-sm">PortraitPro AI</span>
-        </div>
-        <h1 className="text-5xl md:text-7xl font-bold tracking-tight">
-          AI Portrait <span className="text-primary">Studio</span>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-12 space-y-10">
+      <header className="flex flex-col items-center text-center gap-1">
+        <h1 className="relative w-full max-w-[1000px] h-48 md:h-72 transition-transform duration-300 hover:scale-[1.01]">
+          <Image
+            src="/images/onecool-top-ori.png"
+            alt="One Cool AI Portrait Studio"
+            fill
+            className="object-contain"
+            priority
+          />
         </h1>
         <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto">
           One photo. Endless professional variations.
@@ -182,8 +185,16 @@ export default function PortraitProApp() {
         )}
       </main>
 
-      <footer className="pt-20 pb-8 text-center text-muted-foreground border-t border-primary/5 text-sm">
-        <p>© {new Date().getFullYear()} One Cool AIFX.</p>
+      <footer className="pt-20 pb-12 flex flex-col items-center gap-6 text-muted-foreground border-t border-primary/5 text-sm">
+        <div className="relative w-[360px] h-24 opacity-80 hover:opacity-100 transition-opacity duration-300">
+          <Image
+            src="/images/onecool-bottom-ori.png"
+            alt="One Cool AIFX Bottom Logo"
+            fill
+            className="object-contain"
+          />
+        </div>
+        <p>© {new Date().getFullYear()} One Cool AIFX. All rights reserved.</p>
       </footer>
 
       <Toaster />
