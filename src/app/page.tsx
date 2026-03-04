@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback } from 'react';
-import { Camera, Sparkles, Loader2, ArrowRight } from 'lucide-react';
+import { Sparkles, Loader2, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/toaster';
 import { useToast } from '@/hooks/use-toast';
@@ -27,17 +27,21 @@ export default function PortraitProApp() {
     
     try {
       const result = await initialAIPortraitGeneration({ photoDataUri: sourceImage });
-      const urls = result.generatedImages.map(img => img.url);
-      setGeneratedImages(urls);
-      toast({
-        title: "Portraits Generated",
-        description: "Your first batch of 10 portraits is ready.",
-      });
+      if (result.generatedImages.length > 0) {
+        const urls = result.generatedImages.map(img => img.url);
+        setGeneratedImages(urls);
+        toast({
+          title: "Portraits Ready",
+          description: `Generated ${urls.length} professional portraits for you.`,
+        });
+      } else {
+        throw new Error("No images were generated");
+      }
     } catch (error) {
       console.error(error);
       toast({
         title: "Generation Failed",
-        description: "An error occurred while generating your portraits.",
+        description: "The AI was unable to process your photo. Please try a clearer image.",
         variant: "destructive",
       });
     } finally {
@@ -54,11 +58,13 @@ export default function PortraitProApp() {
         photoDataUri: sourceImage, 
         count: 5 
       });
-      setGeneratedImages(prev => [...prev, ...newUrls]);
-      toast({
-        title: "Added 5 Portraits",
-        description: "Five more varied options have been added to your gallery.",
-      });
+      if (newUrls.length > 0) {
+        setGeneratedImages(prev => [...prev, ...newUrls]);
+        toast({
+          title: "Added Portraits",
+          description: `Added ${newUrls.length} more variations to your gallery.`,
+        });
+      }
     } catch (error) {
       console.error(error);
       toast({
@@ -77,16 +83,16 @@ export default function PortraitProApp() {
       return [...prev, url];
     });
     toast({
-      title: "Added to Library",
-      description: "Image saved to your personal selection.",
+      title: "Saved to Library",
+      description: "Portrait added to your personal collection.",
     });
   }, [toast]);
 
   const removeFromLibrary = useCallback((url: string) => {
     setLibraryImages(prev => prev.filter(img => img !== url));
     toast({
-      title: "Removed from Library",
-      description: "Image removed from your collection.",
+      title: "Removed",
+      description: "Portrait removed from your collection.",
     });
   }, [toast]);
 
@@ -107,7 +113,7 @@ export default function PortraitProApp() {
           Portrait<span className="text-primary">Pro</span> AI
         </h1>
         <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto">
-          Transform a single headshot into high-quality professional portraits with Nano Banana power.
+          Transform a single headshot into high-quality professional portraits with advanced AI.
         </p>
       </header>
 
@@ -132,7 +138,7 @@ export default function PortraitProApp() {
                 {isGenerating ? (
                   <>
                     <Loader2 className="mr-3 h-6 w-6 animate-spin" />
-                    Generating 10 Portraits...
+                    Generating Portraits...
                   </>
                 ) : (
                   <>
@@ -153,7 +159,7 @@ export default function PortraitProApp() {
               onAddToLibrary={addToLibrary}
               onGenerateMore={handleGenerateMore}
               isGenerating={isGenerating}
-              canGenerateMore={generatedImages.length < 50} // Limit to reasonable count
+              canGenerateMore={generatedImages.length < 50}
            />
            
            <LibraryGallery 
@@ -175,16 +181,16 @@ export default function PortraitProApp() {
         <div className="flex flex-col gap-4">
           <div className="flex justify-center gap-8 mb-4">
              <div className="flex flex-col items-center">
-                <span className="text-2xl font-bold text-white">10+</span>
-                <span>Angles</span>
+                <span className="text-2xl font-bold text-white">Mult-Angle</span>
+                <span>Composition</span>
              </div>
              <div className="flex flex-col items-center">
-                <span className="text-2xl font-bold text-white">HD</span>
-                <span>Quality</span>
+                <span className="text-2xl font-bold text-white">4K</span>
+                <span>Clarity</span>
              </div>
              <div className="flex flex-col items-center">
                 <span className="text-2xl font-bold text-white">Nano</span>
-                <span>Engine</span>
+                <span>Banana</span>
              </div>
           </div>
           <p>© {new Date().getFullYear()} PortraitPro AI. Professional Portrait Generation Tool.</p>

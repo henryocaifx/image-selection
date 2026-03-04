@@ -1,8 +1,8 @@
 'use server';
 /**
  * @fileOverview This file implements a Genkit flow for initial AI portrait generation.
- * It takes a single front-facing image of a person and generates 10 varied portrait images
- * with different angles and body shots using the Nano Banana model (gemini-2.5-flash-image).
+ * It takes a single front-facing image of a person and generates a batch of varied portrait images
+ * with different angles and body shots using the gemini-2.5-flash-image model.
  *
  * - initialAIPortraitGeneration - A function that handles the generation of initial portrait images.
  * - InitialAIPortraitGenerationInput - The input type for the initialAIPortraitGeneration function.
@@ -32,7 +32,7 @@ const GeneratedImageSchema = z.object({
     ),
   description: z
     .string()
-    .describe('A textual description of the generated image, e.g., "full body, front view".'),
+    .describe('A textual description of the generated image.'),
 });
 
 const InitialAIPortraitGenerationOutputSchema = z.object({
@@ -55,35 +55,22 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
     outputSchema: InitialAIPortraitGenerationOutputSchema,
   },
   async input => {
+    // Reduced count to ensure reliability and avoid timeouts
     const generationPrompts = [
-      'generate a full body portrait from the front view',
-      'generate a half body portrait from the front view',
-      'generate a close-up portrait from the front view',
-      'generate a full body portrait from a three-quarter angle',
-      'generate a half body portrait from a three-quarter angle',
-      'generate a close-up portrait from a three-quarter angle',
-      'generate a full body portrait from the side view',
-      'generate a half body portrait from the side view',
-      'generate a close-up portrait from the side view',
-      'generate a portrait with a dynamic and unique angle, focusing on the person',
+      'generate a professional full body portrait from the front view',
+      'generate a professional half body portrait from a three-quarter angle',
+      'generate a professional close-up headshot looking at camera',
+      'generate a professional portrait from the side view',
+      'generate a creative and dynamic professional portrait'
     ];
-
-    const generatedImages: {url: string; description: string}[] = [];
-
-    // Extract content type from the input photoDataUri
-    const uriParts = input.photoDataUri.split(';');
-    let inputContentType = 'application/octet-stream';
-    if (uriParts.length > 0 && uriParts[0].startsWith('data:')) {
-      inputContentType = uriParts[0].substring(5);
-    }
 
     const generationPromises = generationPrompts.map(async description => {
       try {
         const {media} = await ai.generate({
-          model: googleAI.model('gemini-2.5-flash-image'), // "Nano Banana" model
+          model: 'googleai/gemini-2.5-flash-image',
           prompt: [
-            {media: {url: input.photoDataUri, contentType: inputContentType}},
-            {text: `Based on the provided image of a person, ${description}. Focus on variations in angle and body shot. Ensure the generated image is a portrait of the person.`},
+            {media: {url: input.photoDataUri}},
+            {text: `Based on the provided image, ${description}. Ensure the person maintains their likeness but with the specified angle and composition. High quality professional lighting.`},
           ],
           config: {
             responseModalities: ['TEXT', 'IMAGE'],
@@ -91,25 +78,19 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
         });
 
         if (!media || !media.url) {
-          console.warn(`No image media returned for description: ${description}`);
-          return null; // Return null for failed generations
+          return null;
         }
 
         return {url: media.url, description: description};
       } catch (error) {
-        console.error(`Error generating image for description "${description}":`, error);
-        return null; // Return null for failed generations
+        console.error(`Generation error for ${description}:`, error);
+        return null;
       }
     });
 
     const results = await Promise.all(generationPromises);
+    const validImages = results.filter((img): img is {url: string, description: string} => img !== null);
 
-    results.forEach(result => {
-      if (result) {
-        generatedImages.push(result);
-      }
-    });
-
-    return {generatedImages};
+    return {generatedImages: validImages};
   }
 );
