@@ -46,7 +46,7 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
   async (input) => {
     // Requested count (usually 10)
     // const numToGenerate = input.count;
-    const numToGenerate = 3;
+    const numToGenerate = 5;
 
     const variationPrompts = [
       "Generate a professional headshot of this EXACT SAME PERSON from a slight side profile angle. High resolution, cinematic lighting.",

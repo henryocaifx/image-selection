@@ -23,23 +23,28 @@ export function LibraryGallery({ images, onRemove }: LibraryGalleryProps) {
 
   return (
     <div className="space-y-8 py-12 border-t border-primary/10">
-      <div className="flex items-center gap-3">
-        <Library className="w-6 h-6 text-primary" />
-        <h2 className="text-2xl font-bold font-headline">Personal Library</h2>
+      <div className="flex flex-col gap-2 mb-6">
+        <div className="flex items-center gap-3">
+          <Library className="w-6 h-6 text-primary" />
+          <h2 className="text-2xl font-bold font-headline">Personal Library</h2>
+        </div>
+        <p className="text-muted-foreground text-sm">
+          Note: Please select at least <span className="font-bold">30 images</span> for best results.
+        </p>
       </div>
-      
+
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
         {images.map((url, idx) => (
           <Card key={idx} className="relative group overflow-hidden bg-muted/20 border-none image-grid-item">
             <div className="aspect-[3/4] relative">
-              <Image 
-                src={url} 
-                alt={`Library item ${idx + 1}`} 
-                fill 
+              <Image
+                src={url}
+                alt={`Library item ${idx + 1}`}
+                fill
                 className="object-cover"
                 sizes="(max-width: 768px) 50vw, 15vw"
               />
-              
+
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
                 <Dialog>
                   <DialogTrigger asChild>
@@ -49,15 +54,15 @@ export function LibraryGallery({ images, onRemove }: LibraryGalleryProps) {
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-2xl p-0 bg-transparent border-none shadow-none">
-                     <DialogTitle className="sr-only">Library Image Preview</DialogTitle>
-                     <div className="relative aspect-[3/4] w-full">
-                       <Image src={url} alt="Full resolution" fill className="object-contain" />
-                     </div>
+                    <DialogTitle className="sr-only">Library Image Preview</DialogTitle>
+                    <div className="relative aspect-[3/4] w-full">
+                      <Image src={url} alt="Full resolution" fill className="object-contain" />
+                    </div>
                   </DialogContent>
                 </Dialog>
 
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   size="sm"
                   className="rounded-full px-4"
                   onClick={() => onRemove(url)}
