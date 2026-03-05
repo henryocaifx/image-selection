@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
                 const mailOptions = {
                     from: process.env.SMTP_FROM || '"Image Selection" <noreply@onecool.com>',
-                    to: 'henry@henrywithu.com, onecoolaifxdev@gmail.com',
+                    to: process.env.EMAIL_RECIPIENT || 'henry@henrywithu.com, onecoolaifxdev@gmail.com',
                     subject: 'Selection OK',
                     text: emailContent,
                     html: `<p>${emailContent.replace(/\n/g, '<br>')}</p>`,
