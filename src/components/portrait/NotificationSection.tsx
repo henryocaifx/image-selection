@@ -75,7 +75,7 @@ export function NotificationSection({ libraryCount, libraryImages }: Notificatio
           </div>
           <h2 className="text-3xl font-bold">All Set!</h2>
           <p className="text-muted-foreground text-lg max-w-md mx-auto">
-            Your selection of {libraryCount} images has been finalized and developers have been notified.
+            Your selection of {libraryCount} images has been finalized.
           </p>
           <Button variant="outline" onClick={() => window.location.reload()}>Start Over</Button>
         </div>
@@ -91,14 +91,14 @@ export function NotificationSection({ libraryCount, libraryImages }: Notificatio
           Finalize Selection
         </CardTitle>
         <CardDescription>
-          Ready to wrap up? Notify the developers that you've finished picking your portraits.
+          Ready to wrap up?
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6 space-y-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">Custom Message (Optional)</label>
+          <label className="text-sm font-medium text-muted-foreground">Name your uploaded character and leaveyour email.</label>
           <Textarea
-            placeholder="Add any specific feedback or notes for the developers..."
+            placeholder="For example: Character Name: Snow White, Email: john.doe@example.com"
             className="min-h-[100px] bg-background/50 border-primary/10 focus:border-primary/50 transition-colors"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -114,7 +114,7 @@ export function NotificationSection({ libraryCount, libraryImages }: Notificatio
           ) : (
             <Send className="w-5 h-5 mr-2" />
           )}
-          Complete Selection & Notify Devs
+          Complete Selection
         </Button>
         {libraryCount === 0 && (
           <p className="text-center text-xs text-destructive mt-2">
