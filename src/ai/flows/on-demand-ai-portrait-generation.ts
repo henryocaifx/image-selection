@@ -2,6 +2,8 @@
 /**
  * @fileOverview A Genkit flow for generating additional varied portrait images based on an uploaded photo.
  */
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
@@ -46,7 +48,7 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
   async (input) => {
     // Requested count (usually 10)
     // const numToGenerate = input.count;
-    const numToGenerate = 5;
+    const numToGenerate = parseInt(process.env.ON_DEMAND_AI_PORTRAIT_GENERATION_NUM_TO_GENERATE || '5');
 
     const variationPrompts = [
       "Generate a professional headshot of this EXACT SAME PERSON from a slight side profile angle. High resolution, cinematic lighting.",

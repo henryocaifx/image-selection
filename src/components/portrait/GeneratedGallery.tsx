@@ -46,7 +46,7 @@ export function GeneratedGallery({
           <Button
             onClick={onGenerateMore}
             disabled={isGenerating || !canGenerateMore}
-            className="bg-secondary hover:bg-secondary/80 border border-primary/20"
+            className="bg-white text-black hover:bg-gray-200 border border-primary/20"
           >
             <Plus className="mr-2 h-4 w-4" />
             {isGenerating ? `Generating... (${generationTime}s)` : "Generate More Variations"}

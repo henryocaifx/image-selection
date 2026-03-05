@@ -3,6 +3,8 @@
  * @fileOverview This file implements a Genkit flow for initial AI portrait generation.
  * It takes a single front-facing image of a person and generates a batch of high-quality professional portraits.
  */
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
@@ -48,7 +50,7 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
     outputSchema: InitialAIPortraitGenerationOutputSchema,
   },
   async input => {
-    const count = 10; // Generate 1 initial portraits as requested
+    const count = parseInt(process.env.INITIAL_AI_PORTRAIT_GENERATION_COUNT || '10'); // Generate 1 initial portraits as requested
 
     const prompts = [
       "Using the person in the image as the reference, generate a professional close-up headshot, front-facing. EXACT SAME PERSON. Professional lighting, photorealistic.",
