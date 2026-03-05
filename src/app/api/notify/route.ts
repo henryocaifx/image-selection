@@ -20,15 +20,15 @@ export async function POST(request: Request) {
                 const emailContent = message || 'selection ok';
 
                 const mailOptions = {
-                    from: process.env.SMTP_FROM || '"Image Selection" <noreply@example.com>',
-                    to: 'henry@henrywithu.com',
+                    from: process.env.SMTP_FROM || '"Image Selection" <noreply@onecool.com>',
+                    to: 'henry@henrywithu.com, onecoolaifxdev@gmail.com',
                     subject: 'Selection OK',
                     text: emailContent,
                     html: `<p>${emailContent.replace(/\n/g, '<br>')}</p>`,
                 };
 
                 await transporter.sendMail(mailOptions);
-                console.log("Email sent successfully to henry@henrywithu.com");
+                console.log("Email sent successfully");
             } catch (emailError) {
                 console.error("Failed to send email:", emailError);
                 // We'll proceed even if email fails, or we could return an error. Let's return a partial success or just log it.
