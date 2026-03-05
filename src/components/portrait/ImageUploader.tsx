@@ -34,15 +34,25 @@ export function ImageUploader({ onImageUpload, uploadedImage, onClear, isGenerat
           </div>
           <div className="text-center">
             <h3 className="text-xl font-semibold mb-2">Upload Front-Facing Image</h3>
-            <p className="text-muted-foreground max-w-sm">
-              For best results, upload a clear, high-resolution photo of your face looking directly at the camera.
+            <p className="text-muted-foreground max-w-sm mb-4">
+              For best results, upload passport-style, high-res photo of your character. No hat, no glasses, neutral expression. Sample:
             </p>
+            <div className="flex justify-center mb-2">
+              <div className="relative w-24 h-32 rounded-lg overflow-hidden border border-primary/20 shadow-sm">
+                <Image
+                  src="/images/image-selection-sample.png"
+                  alt="Sample front-facing portrait"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            </div>
           </div>
           <label className="cursor-pointer">
-            <input 
-              type="file" 
-              className="hidden" 
-              accept="image/*" 
+            <input
+              type="file"
+              className="hidden"
+              accept="image/*"
               onChange={handleFileChange}
               disabled={isGenerating}
             />
@@ -54,17 +64,17 @@ export function ImageUploader({ onImageUpload, uploadedImage, onClear, isGenerat
       ) : (
         <div className="relative group">
           <div className="relative w-64 h-64 overflow-hidden rounded-xl border-4 border-primary/20 shadow-2xl">
-            <Image 
-              src={uploadedImage} 
-              alt="Uploaded source" 
-              fill 
+            <Image
+              src={uploadedImage}
+              alt="Uploaded source"
+              fill
               className="object-cover"
             />
           </div>
           {!isGenerating && (
-            <Button 
-              variant="destructive" 
-              size="icon" 
+            <Button
+              variant="destructive"
+              size="icon"
               className="absolute -top-3 -right-3 rounded-full shadow-lg"
               onClick={onClear}
             >
