@@ -53,11 +53,21 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
     const count = parseInt(process.env.INITIAL_AI_PORTRAIT_GENERATION_COUNT || '10'); // Generate 1 initial portraits as requested
 
     const prompts = [
-      "Using the person in the image as the reference, generate a professional close-up headshot, front-facing. EXACT SAME PERSON. Professional lighting, photorealistic.",
-      "Using the person in the image as the reference, generate a professional close-up headshot with a 45-degree face angle. EXACT SAME PERSON. Professional lighting, photorealistic.",
-      "Using the person in the image as the reference, generate a professional half-body portrait. EXACT SAME PERSON. Professional lighting, photorealistic.",
-      "Using the person in the image as the reference, generate a professional full-body portrait. EXACT SAME PERSON. Professional lighting, photorealistic.",
-      "Using the person in the image as the reference, generate a professional portrait from a different side angle. EXACT SAME PERSON. Professional lighting, photorealistic.",
+      "Using the person in the image as the reference, generate a close-up headshot, front-facing. EXACT SAME PERSON. studio lighting, photorealistic.",
+      "Using the person in the image as the reference, generate a close-up headshot with a 45-degree face angle. EXACT SAME PERSON. studio lighting, photorealistic.",
+      "Using the person in the image as the reference, generate a half-body portrait. EXACT SAME PERSON. studio lighting, photorealistic.",
+      "Using the person in the image as the reference, generate a full-body portrait. EXACT SAME PERSON. studio lighting, photorealistic.",
+      "Using the person in the image as the reference, generate a portrait from a different side angle. EXACT SAME PERSON. studio lighting, photorealistic.",
+      "Using the person in the image as the reference, generate a close-up headshot, front-facing. EXACT SAME PERSON. natural daytime lighting, photorealistic.",
+      "Using the person in the image as the reference, generate a close-up headshot with a 45-degree face angle. EXACT SAME PERSON. natural daytime lighting, photorealistic.",
+      "Using the person in the image as the reference, generate a half-body portrait. EXACT SAME PERSON. natural daytime lighting, photorealistic.",
+      "Using the person in the image as the reference, generate a full-body portrait. EXACT SAME PERSON. natural daytime lighting, photorealistic.",
+      "Using the person in the image as the reference, generate a portrait from a different side angle. EXACT SAME PERSON. natural daytime lighting, photorealistic.",
+      "Using the person in the image as the reference, generate a close-up headshot, front-facing. EXACT SAME PERSON. night time, photorealistic.",
+      "Using the person in the image as the reference, generate a close-up headshot with a 45-degree face angle. EXACT SAME PERSON. night time, photorealistic.",
+      "Using the person in the image as the reference, generate a half-body portrait. EXACT SAME PERSON. night time, photorealistic.",
+      "Using the person in the image as the reference, generate a full-body portrait. EXACT SAME PERSON. night time, photorealistic.",
+      "Using the person in the image as the reference, generate a portrait from a different side angle. EXACT SAME PERSON. night time, photorealistic."
     ];
 
     // Preload the model in Genkit's registry to prevent "already has an entry" warnings on parallel calls
