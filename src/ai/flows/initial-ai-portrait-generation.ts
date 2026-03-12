@@ -72,14 +72,14 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
 
     // Preload the model in Genkit's registry to prevent "already has an entry" warnings on parallel calls
     try {
-      await ai.registry.lookupAction('/model/vertexai/gemini-3.1-flash-image-preview');
+      await ai.registry.lookupAction('/model/googleai/gemini-3.1-flash-image-preview');
     } catch (_) { }
 
     const generationPromises = Array.from({ length: count }).map(async (_, i) => {
       const startTime = Date.now();
       try {
         const { media } = await ai.generate({
-          model: 'vertexai/gemini-3.1-flash-image-preview',
+          model: 'googleai/gemini-3.1-flash-image-preview',
           prompt: [
             { media: { url: input.photoDataUri } },
             { text: prompts[i % prompts.length] },
