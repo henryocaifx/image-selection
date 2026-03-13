@@ -65,7 +65,12 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
       "Using the person in the image as the reference, generate a close-up headshot with a 45-degree face angle. EXACT SAME PERSON. night time, photorealistic.",
       "Using the person in the image as the reference, generate a half-body portrait. EXACT SAME PERSON. night time, photorealistic.",
       "Using the person in the image as the reference, generate a full-body portrait. EXACT SAME PERSON. night time, photorealistic.",
-      "Using the person in the image as the reference, generate a portrait from a different side angle. EXACT SAME PERSON. night time, photorealistic."
+      "Using the person in the image as the reference, generate a portrait from a different side angle. EXACT SAME PERSON. night time, photorealistic.",
+      "Using the person in the image as the reference, generate a close-up headshot, front-facing. EXACT SAME PERSON. outdoor natural lighting, photorealistic.",
+      "Using the person in the image as the reference, generate a close-up headshot with a 45-degree face angle. EXACT SAME PERSON. outdoor natural lighting, photorealistic.",
+      "Using the person in the image as the reference, generate a half-body portrait. EXACT SAME PERSON. outdoor natural lighting, photorealistic.",
+      "Using the person in the image as the reference, generate a full-body portrait. EXACT SAME PERSON. outdoor natural lighting, photorealistic.",
+      "Using the person in the image as the reference, generate a portrait from a different side angle. EXACT SAME PERSON. outdoor natural lighting, photorealistic."
     ];
 
     // Preload the model in Genkit's registry to prevent "already has an entry" warnings on parallel calls
