@@ -180,6 +180,7 @@ export default function PortraitProApp() {
             images={generatedImages}
             libraryImages={libraryImages}
             onAddToLibrary={addToLibrary}
+            onRemoveFromLibrary={removeFromLibrary}
             onGenerateMore={handleGenerateMore}
             isGenerating={isGenerating}
             canGenerateMore={generatedImages.length < 100}

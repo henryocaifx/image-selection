@@ -33,7 +33,7 @@ export function LibraryGallery({ images, onRemove }: LibraryGalleryProps) {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {images.map((url, idx) => (
           <Card key={idx} className="relative group overflow-hidden bg-muted/20 border-none image-grid-item">
             <div className="aspect-[3/4] relative">
@@ -53,9 +53,9 @@ export function LibraryGallery({ images, onRemove }: LibraryGalleryProps) {
                       View
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-2xl p-0 bg-transparent border-none shadow-none">
+                  <DialogContent className="max-w-3xl border-none p-0 overflow-hidden bg-transparent shadow-none">
                     <DialogTitle className="sr-only">Library Image Preview</DialogTitle>
-                    <div className="relative aspect-[3/4] w-full">
+                    <div className="relative aspect-[3/4] w-full max-h-[90vh]">
                       <Image src={url} alt="Full resolution" fill className="object-contain" />
                     </div>
                   </DialogContent>

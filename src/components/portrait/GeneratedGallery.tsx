@@ -17,6 +17,7 @@ interface GeneratedGalleryProps {
   images: { url: string; generationTimeMs: number }[];
   libraryImages: string[];
   onAddToLibrary: (url: string) => void;
+  onRemoveFromLibrary: (url: string) => void;
   onGenerateMore: () => void;
   isGenerating: boolean;
   canGenerateMore: boolean;
@@ -27,6 +28,7 @@ export function GeneratedGallery({
   images,
   libraryImages,
   onAddToLibrary,
+  onRemoveFromLibrary,
   onGenerateMore,
   isGenerating,
   canGenerateMore,
@@ -87,9 +89,8 @@ export function GeneratedGallery({
                   <Button
                     size="icon"
                     variant={isSelected ? "default" : "secondary"}
-                    className={`rounded-full ${isSelected ? "bg-primary text-primary-foreground" : ""}`}
-                    onClick={() => onAddToLibrary(url)}
-                    disabled={isSelected}
+                    className={`rounded-full ${isSelected ? "bg-primary text-primary-foreground hover:bg-destructive" : ""}`}
+                    onClick={() => isSelected ? onRemoveFromLibrary(url) : onAddToLibrary(url)}
                   >
                     {isSelected ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                   </Button>
