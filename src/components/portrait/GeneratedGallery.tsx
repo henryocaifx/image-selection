@@ -12,6 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface GeneratedGalleryProps {
   images: { url: string; generationTimeMs: number; category: 'portrait' | 'half-body' | 'full-body' }[];
@@ -22,6 +23,41 @@ interface GeneratedGalleryProps {
   isGenerating: boolean;
   canGenerateMore: boolean;
   generationTime: number;
+  pendingCount: number;
+}
+
+function SkeletonCard({ index }: { index: number }) {
+  const [seconds, setSeconds] = React.useState(0);
+
+  React.useEffect(() => {
+    const startTime = Date.now();
+    const interval = setInterval(() => {
+      setSeconds(Math.floor((Date.now() - startTime) / 1000));
+    }, 100);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <Card key={`skeleton-${index}`} className="relative group overflow-hidden bg-muted/20 border-none flex flex-col">
+      <div className="aspect-[3/4] relative w-full overflow-hidden">
+        <Skeleton className="absolute inset-0 h-full w-full" />
+        <div className="absolute bottom-2 left-2 z-10 text-[10px] font-medium text-primary/60 uppercase tracking-widest bg-black/40 px-2 py-0.5 rounded backdrop-blur-sm">
+           {seconds}s
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-primary/10 border border-primary/20 animate-pulse">
+              <div className="w-6 h-6 rounded-full bg-primary/30" />
+            </div>
+            <span className="text-[10px] font-medium text-primary/40 uppercase tracking-widest">Generating...</span>
+          </div>
+        </div>
+      </div>
+      <div className="p-2 flex justify-center border-t bg-background/30">
+        <Skeleton className="h-3 w-28 opacity-30" />
+      </div>
+    </Card>
+  );
 }
 
 export function GeneratedGallery({
@@ -32,7 +68,8 @@ export function GeneratedGallery({
   onGenerateMore,
   isGenerating,
   canGenerateMore,
-  generationTime
+  generationTime,
+  pendingCount
 }: GeneratedGalleryProps) {
 
   if (images.length === 0 && !isGenerating) return null;
@@ -60,7 +97,7 @@ export function GeneratedGallery({
         {images.map(({ url, generationTimeMs, category }, idx) => {
           const isSelected = libraryImages.some(img => img.url === url);
           return (
-            <Card key={idx} className="relative group overflow-hidden bg-muted/20 border-none image-grid-item flex flex-col">
+            <Card key={idx} className="relative group overflow-hidden bg-muted/20 border-none image-grid-item flex flex-col animate-in zoom-in-95 duration-500">
               <div className="aspect-[3/4] relative w-full">
                 <Image
                   src={url}
@@ -96,15 +133,15 @@ export function GeneratedGallery({
                   </Button>
                 </div>
 
-                  {isSelected && (
-                    <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground shadow-lg">
-                      Selected
-                    </Badge>
-                  )}
-                  <Badge className="absolute bottom-2 left-2 bg-black/60 text-white border-none backdrop-blur-sm">
-                    {category}
+                {isSelected && (
+                  <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground shadow-lg">
+                    Selected
                   </Badge>
-                </div>
+                )}
+                <Badge className="absolute bottom-2 left-2 bg-black/60 text-white border-none backdrop-blur-sm">
+                  {category}
+                </Badge>
+              </div>
               <div className="p-2 text-xs text-center text-muted-foreground border-t bg-background/50">
                 Generated in {(generationTimeMs / 1000).toFixed(1)}s
               </div>
@@ -113,10 +150,9 @@ export function GeneratedGallery({
         })}
 
         {isGenerating && (
-          <Card key="skeleton" className="aspect-[3/4] bg-muted animate-pulse rounded-lg border-none flex flex-col items-center justify-center gap-4">
-            <div className="w-8 h-1 bg-primary/20 rounded-full" />
-            <span className="text-sm font-medium text-muted-foreground">{generationTime}s elapsed</span>
-          </Card>
+          Array.from({ length: pendingCount }).map((_, i) => (
+            <SkeletonCard key={`skeleton-${i}`} index={i} />
+          ))
         )}
       </div>
     </div>

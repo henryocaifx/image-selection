@@ -18,6 +18,7 @@ const InitialAIPortraitGenerationInputSchema = z.object({
     .describe(
       "A front-facing photo of a person, as a data URI that must include a MIME type and use Base64 encoding."
     ),
+  count: z.number().optional().describe("Number of images to generate."),
 });
 export type InitialAIPortraitGenerationInput = z.infer<
   typeof InitialAIPortraitGenerationInputSchema
@@ -54,7 +55,7 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
     outputSchema: InitialAIPortraitGenerationOutputSchema,
   },
   async input => {
-    const count = parseInt(process.env.INITIAL_AI_PORTRAIT_GENERATION_COUNT || '10'); // Generate 1 initial portraits as requested
+    const count = input.count || parseInt(process.env.NEXT_PUBLIC_INITIAL_AI_PORTRAIT_GENERATION_COUNT || '10');
 
     const promptsPath = path.join(process.cwd(), 'src', 'ai', 'prompts.md');
     const promptsContent = fs.readFileSync(promptsPath, 'utf8');
@@ -63,73 +64,56 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
       .map((line) => line.trim())
       .filter((line) => line.length > 0 && !line.startsWith('#') && !line.startsWith('//'));
 
-    // Preload the model in Genkit's registry to prevent "already has an entry" warnings on parallel calls
+    // Preload model
     try {
       await ai.registry.lookupAction('/model/googleai/gemini-3.1-flash-image-preview');
     } catch (_) { }
 
-    const results: ({ url: string, description: string, generationTimeMs: number, category: string } | null)[] = [];
-    const CONCURRENCY_LIMIT = parseInt(process.env.AI_GENERATION_CONCURRENCY_LIMIT || '3');
+    const batchPromises = Array.from({ length: count }).map(async (_, index) => {
+      const startTime = Date.now();
+      let retries = 3;
+      let lastError = null;
 
-    for (let i = 0; i < count; i += CONCURRENCY_LIMIT) {
-      const batchSize = Math.min(CONCURRENCY_LIMIT, count - i);
-      const batchPromises = Array.from({ length: batchSize }).map(async (_, j) => {
-        // Stagger intra-batch requests to prevent sudden HTTP socket connection drops (ECONNRESET)
-        if (j > 0) await new Promise(resolve => setTimeout(resolve, j * 600));
-
-        const index = i + j;
-        const startTime = Date.now();
-        let retries = 3;
-        let lastError = null;
-        
-        while (retries > 0) {
-          try {
-            const promptText = prompts[Math.floor(Math.random() * prompts.length)];
-            const { media } = await ai.generate({
-              model: 'googleai/gemini-3.1-flash-image-preview',
-              prompt: [
-                { media: { url: input.photoDataUri } },
-                { text: promptText },
+      while (retries > 0) {
+        try {
+          const promptText = prompts[Math.floor(Math.random() * prompts.length)];
+          const { media } = await ai.generate({
+            model: 'googleai/gemini-3.1-flash-image-preview',
+            prompt: [
+              { media: { url: input.photoDataUri } },
+              { text: promptText },
+            ],
+            config: {
+              responseModalities: ['TEXT', 'IMAGE'],
+              safetySettings: [
+                { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+                { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' },
               ],
-              config: {
-                responseModalities: ['TEXT', 'IMAGE'],
-                safetySettings: [
-                  { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
-                  { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
-                  { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
-                  { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
-                  { category: 'HARM_CATEGORY_CIVIC_INTEGRITY', threshold: 'BLOCK_NONE' },
-                ],
-              },
-            });
+            },
+          });
 
-            if (media && media.url) {
-              return { 
-                url: media.url, 
-                description: `Portrait Variation ${index + 1}`, 
-                generationTimeMs: Date.now() - startTime,
-                category: categorizePrompt(promptText)
-              };
-            }
-            return null;
-          } catch (error) {
-            lastError = error;
-            retries--;
-            if (retries > 0) {
-              // Wait before retrying
-              await new Promise(resolve => setTimeout(resolve, 2000));
-            }
+          if (media && media.url) {
+            return {
+              url: media.url,
+              description: `Portrait Variation ${index + 1}`,
+              generationTimeMs: Date.now() - startTime,
+              category: categorizePrompt(promptText) as 'portrait' | 'half-body' | 'full-body'
+            };
           }
+          return null;
+        } catch (error) {
+          lastError = error;
+          retries--;
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
-        
-        console.error(`Initial generation iteration ${index} failed after retries:`, lastError);
-        return null;
-      });
-      
-      const batchResults = await Promise.all(batchPromises);
-      results.push(...batchResults);
-    }
+      }
+      return null;
+    });
 
+    const results = await Promise.all(batchPromises);
     const generatedImages = results.filter((res): res is { url: string, description: string, generationTimeMs: number, category: 'portrait' | 'half-body' | 'full-body' } => res !== null);
     return { generatedImages };
   }

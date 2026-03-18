@@ -13,6 +13,7 @@ import { GeneratedGallery } from '@/components/portrait/GeneratedGallery';
 import { LibraryGallery } from '@/components/portrait/LibraryGallery';
 import { NotificationSection } from '@/components/portrait/NotificationSection';
 import { FloatingCounter } from '@/components/portrait/FloatingCounter';
+import { generateSinglePortrait } from '@/ai/flows/generate-single-portrait';
 
 export type GeneratedImageData = {
   url: string;
@@ -26,6 +27,7 @@ export default function PortraitProApp() {
   const [libraryImages, setLibraryImages] = useState<GeneratedImageData[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationTime, setGenerationTime] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -44,24 +46,37 @@ export default function PortraitProApp() {
   const handleStartGeneration = async () => {
     if (!sourceImage) return;
 
+    const initialCount = parseInt(process.env.NEXT_PUBLIC_INITIAL_AI_PORTRAIT_GENERATION_COUNT || '10');
+    setPendingCount(initialCount);
     setIsGenerating(true);
     setGeneratedImages([]);
 
     try {
-      const result = await initialAIPortraitGeneration({ photoDataUri: sourceImage });
-      if (result && result.generatedImages && result.generatedImages.length > 0) {
-        setGeneratedImages(result.generatedImages);
-        toast({
-          title: "Portraits Ready",
-          description: `Generated ${result.generatedImages.length} initial portraits for you.`,
-        });
-      } else {
-        toast({
-          title: "Generation Notice",
-          description: "The AI was unable to generate images. Please try a different photo with better lighting.",
-          variant: "destructive",
-        });
-      }
+      const batchStartTime = Date.now();
+      const numParallelCalls = 6;
+      const imagesPerCall = Math.ceil(initialCount / numParallelCalls);
+      
+      const generationCalls = Array.from({ length: numParallelCalls }).map(async () => {
+        const result = await initialAIPortraitGeneration({ photoDataUri: sourceImage, count: imagesPerCall });
+        if (result && result.generatedImages) {
+          const processedImages = result.generatedImages.map(img => ({
+            ...img,
+            generationTimeMs: Date.now() - batchStartTime
+          })) as GeneratedImageData[];
+          
+          setGeneratedImages(prev => [...prev, ...processedImages]);
+          setPendingCount(prev => Math.max(0, prev - processedImages.length));
+        } else {
+           setPendingCount(prev => Math.max(0, prev - imagesPerCall));
+        }
+      });
+      
+      await Promise.all(generationCalls);
+
+      toast({
+        title: "Initial Portraits Complete",
+        description: `Successfully generated ${initialCount} portraits.`,
+      });
     } catch (error) {
       console.error("Client side generation error:", error);
       toast({
@@ -71,32 +86,43 @@ export default function PortraitProApp() {
       });
     } finally {
       setIsGenerating(false);
+      setPendingCount(0);
     }
   };
 
   const handleGenerateMore = async () => {
     if (!sourceImage) return;
 
+    const moreCount = parseInt(process.env.NEXT_PUBLIC_ON_DEMAND_AI_PORTRAIT_GENERATION_NUM_TO_GENERATE || '10');
+    setPendingCount(moreCount);
     setIsGenerating(true);
+
     try {
-      // Request 10 more images per click
-      const newUrls = await generateAdditionalPortraits({
-        photoDataUri: sourceImage,
-        count: 10
+      const batchStartTime = Date.now();
+      const numParallelCalls = 5; // e.g., 2 calls of 5 for a total of 10
+      const imagesPerCall = Math.ceil(moreCount / numParallelCalls);
+
+      const generationCalls = Array.from({ length: numParallelCalls }).map(async () => {
+        const result = await initialAIPortraitGeneration({ photoDataUri: sourceImage, count: imagesPerCall });
+        if (result && result.generatedImages) {
+          const processedImages = result.generatedImages.map(img => ({
+            ...img,
+            generationTimeMs: Date.now() - batchStartTime
+          })) as GeneratedImageData[];
+          
+          setGeneratedImages(prev => [...prev, ...processedImages]);
+          setPendingCount(prev => Math.max(0, prev - processedImages.length));
+        } else {
+          setPendingCount(prev => Math.max(0, prev - imagesPerCall));
+        }
       });
-      if (newUrls && newUrls.length > 0) {
-        setGeneratedImages(prev => [...prev, ...newUrls]);
-        toast({
-          title: "Variations Added",
-          description: `Successfully added ${newUrls.length} new portrait variations.`,
-        });
-      } else {
-        toast({
-          title: "Notice",
-          description: "Could not generate new variations at this time.",
-          variant: "destructive",
-        });
-      }
+
+      await Promise.all(generationCalls);
+
+      toast({
+        title: "Variations Added",
+        description: `Successfully added ${moreCount} new portrait variations.`,
+      });
     } catch (error) {
       console.error("Additional generation error:", error);
       toast({
@@ -106,6 +132,7 @@ export default function PortraitProApp() {
       });
     } finally {
       setIsGenerating(false);
+      setPendingCount(0);
     }
   };
 
@@ -187,6 +214,7 @@ export default function PortraitProApp() {
             isGenerating={isGenerating}
             canGenerateMore={generatedImages.length < 100}
             generationTime={generationTime}
+            pendingCount={pendingCount}
           />
 
           <LibraryGallery
