@@ -10,20 +10,31 @@ import { saveImagesToLocalFolder } from '@/lib/storage-actions';
 
 interface NotificationSectionProps {
   libraryCount: number;
-  libraryImages: string[];
+  libraryImages: { url: string; category: string }[];
 }
 
 export function NotificationSection({ libraryCount, libraryImages }: NotificationSectionProps) {
-  const [message, setMessage] = useState('');
+  const [characterName, setCharacterName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isSent, setIsSent] = useState(false);
   const { toast } = useToast();
 
+  const REQUIRED_PORTRAIT = parseInt(process.env.NEXT_PUBLIC_REQUIRED_PORTRAIT || '22');
+  const REQUIRED_HALF_BODY = parseInt(process.env.NEXT_PUBLIC_REQUIRED_HALF_BODY || '6');
+  const REQUIRED_FULL_BODY = parseInt(process.env.NEXT_PUBLIC_REQUIRED_FULL_BODY || '2');
+
   const handleNotify = async () => {
-    if (libraryCount === 0) {
+    const counts = {
+      portrait: libraryImages.filter(img => img.category === 'portrait').length,
+      'half-body': libraryImages.filter(img => img.category === 'half-body').length,
+      'full-body': libraryImages.filter(img => img.category === 'full-body').length,
+    };
+
+    if (counts.portrait < REQUIRED_PORTRAIT || counts['half-body'] < REQUIRED_HALF_BODY || counts['full-body'] < REQUIRED_FULL_BODY) {
       toast({
-        title: "Library is empty",
-        description: "Please add some images to your library before finishing.",
+        title: "Minimum Requirements Not Met",
+        description: `Please select at least ${REQUIRED_PORTRAIT} portraits, ${REQUIRED_HALF_BODY} half-body, and ${REQUIRED_FULL_BODY} full-body images.`,
         variant: "destructive"
       });
       return;
@@ -32,7 +43,7 @@ export function NotificationSection({ libraryCount, libraryImages }: Notificatio
     setIsSending(true);
     try {
       // Save images to local folder
-      const saveResult = await saveImagesToLocalFolder(libraryImages);
+      const saveResult = await saveImagesToLocalFolder(libraryImages.map(img => img.url));
 
       if (!saveResult.success) {
         throw new Error(saveResult.error);
@@ -42,7 +53,12 @@ export function NotificationSection({ libraryCount, libraryImages }: Notificatio
       const notifyResponse = await fetch('/api/notify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'complete', message: message }),
+        body: JSON.stringify({ 
+          action: 'complete', 
+          characterName: characterName,
+          userEmail: userEmail,
+          counts: counts
+        }),
       });
 
       if (!notifyResponse.ok) {
@@ -95,32 +111,65 @@ export function NotificationSection({ libraryCount, libraryImages }: Notificatio
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6 space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium text-muted-foreground">Name your uploaded character and leaveyour email.</label>
-          <Textarea
-            placeholder="For example: Character Name: Snow White, Email: john.doe@example.com"
-            className="min-h-[100px] bg-background/50 border-primary/10 focus:border-primary/50 transition-colors"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-          />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground">Character Name</label>
+            <input
+              type="text"
+              placeholder="e.g. Snow White"
+              className="w-full h-11 px-4 rounded-md bg-background/50 border border-primary/10 focus:border-primary/50 transition-colors outline-none"
+              value={characterName}
+              onChange={(e) => setCharacterName(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-muted-foreground">Contact Email</label>
+            <input
+              type="email"
+              placeholder="e.g. john.doe@example.com"
+              className="w-full h-11 px-4 rounded-md bg-background/50 border border-primary/10 focus:border-primary/50 transition-colors outline-none"
+              value={userEmail}
+              onChange={(e) => setUserEmail(e.target.value)}
+            />
+          </div>
         </div>
-        <Button
-          className="w-full h-12 bg-primary text-primary-foreground font-bold text-lg hover:shadow-primary/20 shadow-xl"
-          onClick={handleNotify}
-          disabled={isSending || libraryCount === 0}
-        >
-          {isSending ? (
-            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-          ) : (
-            <Send className="w-5 h-5 mr-2" />
-          )}
-          Complete Selection
-        </Button>
-        {libraryCount === 0 && (
-          <p className="text-center text-xs text-destructive mt-2">
-            * Add at least one image to your library to enable notification.
-          </p>
-        )}
+        {(() => {
+          const counts = {
+            portrait: libraryImages.filter(img => img.category === 'portrait').length,
+            'half-body': libraryImages.filter(img => img.category === 'half-body').length,
+            'full-body': libraryImages.filter(img => img.category === 'full-body').length,
+          };
+          const isRequirementsMet = counts.portrait >= REQUIRED_PORTRAIT && counts['half-body'] >= REQUIRED_HALF_BODY && counts['full-body'] >= REQUIRED_FULL_BODY;
+
+          return (
+            <>
+              <Button
+                className={`w-full h-12 font-bold text-lg hover:shadow-primary/20 shadow-xl transition-all ${isRequirementsMet ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground grayscale cursor-not-allowed'}`}
+                onClick={handleNotify}
+                disabled={isSending || !isRequirementsMet || !characterName.trim() || !userEmail.trim()}
+              >
+                {isSending ? (
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                ) : (
+                  <Send className="w-5 h-5 mr-2" />
+                )}
+                Complete Selection
+              </Button>
+              {!isRequirementsMet && (
+                <div className="text-center space-y-1 mt-4 p-3 bg-destructive/10 rounded-lg border border-destructive/20 animate-pulse">
+                  <p className="text-xs font-bold text-destructive flex items-center justify-center gap-1">
+                    Selection Requirements:
+                  </p>
+                  <div className="flex justify-center gap-3 text-[10px] font-medium text-destructive/80">
+                    <span className={counts.portrait >= REQUIRED_PORTRAIT ? "text-green-500" : ""}>Portrait: {counts.portrait}/{REQUIRED_PORTRAIT}</span>
+                    <span className={counts['half-body'] >= REQUIRED_HALF_BODY ? "text-green-500" : ""}>Half: {counts['half-body']}/{REQUIRED_HALF_BODY}</span>
+                    <span className={counts['full-body'] >= REQUIRED_FULL_BODY ? "text-green-500" : ""}>Full: {counts['full-body']}/{REQUIRED_FULL_BODY}</span>
+                  </div>
+                </div>
+              )}
+            </>
+          );
+        })()}
       </CardContent>
     </Card>
   );

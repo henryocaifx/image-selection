@@ -5,6 +5,7 @@ import { Trash2, Library, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import {
   Dialog,
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 
 interface LibraryGalleryProps {
-  images: string[];
+  images: { url: string; category: string }[];
   onRemove: (url: string) => void;
 }
 
@@ -29,12 +30,17 @@ export function LibraryGallery({ images, onRemove }: LibraryGalleryProps) {
           <h2 className="text-2xl font-bold font-headline">Personal Library</h2>
         </div>
         <p className="text-muted-foreground text-sm">
-          Note: Please select at least <span className="font-bold">30 images</span> for best results.
+          {(() => {
+            const total = parseInt(process.env.NEXT_PUBLIC_REQUIRED_PORTRAIT || '22') + 
+                          parseInt(process.env.NEXT_PUBLIC_REQUIRED_HALF_BODY || '6') + 
+                          parseInt(process.env.NEXT_PUBLIC_REQUIRED_FULL_BODY || '2');
+            return <>Note: Please select at least <span className="font-bold">{total} images</span> for best results.</>;
+          })()}
         </p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {images.map((url, idx) => (
+        {images.map(({ url, category }, idx) => (
           <Card key={idx} className="relative group overflow-hidden bg-muted/20 border-none image-grid-item">
             <div className="aspect-[3/4] relative">
               <Image
@@ -71,6 +77,9 @@ export function LibraryGallery({ images, onRemove }: LibraryGalleryProps) {
                   Remove
                 </Button>
               </div>
+              <Badge className="absolute bottom-2 left-2 bg-black/60 text-white border-none backdrop-blur-sm">
+                {category}
+              </Badge>
             </div>
           </Card>
         ))}

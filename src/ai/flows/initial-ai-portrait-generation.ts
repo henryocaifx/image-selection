@@ -10,6 +10,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import * as fs from 'fs';
 import * as path from 'path';
+import { categorizePrompt } from '@/lib/categorization';
 
 const InitialAIPortraitGenerationInputSchema = z.object({
   photoDataUri: z
@@ -30,6 +31,7 @@ const GeneratedImageSchema = z.object({
     .string()
     .describe('A textual description of the generated image.'),
   generationTimeMs: z.number().describe("Time taken to generate the image in milliseconds."),
+  category: z.enum(['portrait', 'half-body', 'full-body']).describe("The category of the generated image."),
 });
 
 const InitialAIPortraitGenerationOutputSchema = z.object({
@@ -66,7 +68,7 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
       await ai.registry.lookupAction('/model/googleai/gemini-3.1-flash-image-preview');
     } catch (_) { }
 
-    const results: ({ url: string, description: string, generationTimeMs: number } | null)[] = [];
+    const results: ({ url: string, description: string, generationTimeMs: number, category: string } | null)[] = [];
     const CONCURRENCY_LIMIT = parseInt(process.env.AI_GENERATION_CONCURRENCY_LIMIT || '3');
 
     for (let i = 0; i < count; i += CONCURRENCY_LIMIT) {
@@ -82,11 +84,12 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
         
         while (retries > 0) {
           try {
+            const promptText = prompts[Math.floor(Math.random() * prompts.length)];
             const { media } = await ai.generate({
               model: 'googleai/gemini-3.1-flash-image-preview',
               prompt: [
                 { media: { url: input.photoDataUri } },
-                { text: prompts[Math.floor(Math.random() * prompts.length)] },
+                { text: promptText },
               ],
               config: {
                 responseModalities: ['TEXT', 'IMAGE'],
@@ -101,7 +104,12 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
             });
 
             if (media && media.url) {
-              return { url: media.url, description: `Portrait Variation ${index + 1}`, generationTimeMs: Date.now() - startTime };
+              return { 
+                url: media.url, 
+                description: `Portrait Variation ${index + 1}`, 
+                generationTimeMs: Date.now() - startTime,
+                category: categorizePrompt(promptText)
+              };
             }
             return null;
           } catch (error) {
@@ -122,7 +130,7 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
       results.push(...batchResults);
     }
 
-    const generatedImages = results.filter((res): res is { url: string, description: string, generationTimeMs: number } => res !== null);
+    const generatedImages = results.filter((res): res is { url: string, description: string, generationTimeMs: number, category: 'portrait' | 'half-body' | 'full-body' } => res !== null);
     return { generatedImages };
   }
 );

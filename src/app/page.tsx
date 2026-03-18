@@ -12,16 +12,18 @@ import { ImageUploader } from '@/components/portrait/ImageUploader';
 import { GeneratedGallery } from '@/components/portrait/GeneratedGallery';
 import { LibraryGallery } from '@/components/portrait/LibraryGallery';
 import { NotificationSection } from '@/components/portrait/NotificationSection';
+import { FloatingCounter } from '@/components/portrait/FloatingCounter';
 
 export type GeneratedImageData = {
   url: string;
   generationTimeMs: number;
+  category: 'portrait' | 'half-body' | 'full-body';
 };
 
 export default function PortraitProApp() {
   const [sourceImage, setSourceImage] = useState<string | null>(null);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImageData[]>([]);
-  const [libraryImages, setLibraryImages] = useState<string[]>([]);
+  const [libraryImages, setLibraryImages] = useState<GeneratedImageData[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationTime, setGenerationTime] = useState(0);
   const { toast } = useToast();
@@ -48,11 +50,10 @@ export default function PortraitProApp() {
     try {
       const result = await initialAIPortraitGeneration({ photoDataUri: sourceImage });
       if (result && result.generatedImages && result.generatedImages.length > 0) {
-        const images = result.generatedImages.map(img => ({ url: img.url, generationTimeMs: img.generationTimeMs }));
-        setGeneratedImages(images);
+        setGeneratedImages(result.generatedImages);
         toast({
           title: "Portraits Ready",
-          description: `Generated ${images.length} initial portraits for you.`,
+          description: `Generated ${result.generatedImages.length} initial portraits for you.`,
         });
       } else {
         toast({
@@ -108,24 +109,25 @@ export default function PortraitProApp() {
     }
   };
 
-  const addToLibrary = useCallback((url: string) => {
+  const addToLibrary = useCallback((image: GeneratedImageData) => {
     setLibraryImages(prev => {
-      if (prev.includes(url)) return prev;
-      return [...prev, url];
+      if (prev.find(img => img.url === image.url)) return prev;
+      return [...prev, image];
     });
     toast({
       title: "Saved",
-      description: "Added to your library.",
+      description: `Added ${image.category} to your library.`,
     });
   }, [toast]);
 
   const removeFromLibrary = useCallback((url: string) => {
-    setLibraryImages(prev => prev.filter(img => img !== url));
+    setLibraryImages(prev => prev.filter(img => img.url !== url));
   }, []);
 
   const clearSource = () => {
     setSourceImage(null);
     setGeneratedImages([]);
+    setLibraryImages([]);
   };
 
   return (
@@ -215,6 +217,7 @@ export default function PortraitProApp() {
         <p>© {new Date().getFullYear()} One Cool AIFX. All rights reserved.</p>
       </footer>
 
+      {libraryImages.length > 0 && <FloatingCounter libraryImages={libraryImages} />}
       <Toaster />
     </div>
   );

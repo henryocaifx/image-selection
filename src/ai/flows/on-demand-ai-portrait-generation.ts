@@ -9,6 +9,7 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import * as fs from 'fs';
 import * as path from 'path';
+import { categorizePrompt } from '@/lib/categorization';
 
 const OnDemandAIPortraitGenerationInputSchema = z.object({
   photoDataUri: z
@@ -30,6 +31,7 @@ export type OnDemandAIPortraitGenerationInput = z.infer<
 const OnDemandAIPortraitGenerationOutputSchema = z.array(z.object({
   url: z.string(),
   generationTimeMs: z.number().describe("Time taken to generate the image in milliseconds."),
+  category: z.enum(['portrait', 'half-body', 'full-body']).describe("The category of the generated image."),
 }));
 export type OnDemandAIPortraitGenerationOutput = z.infer<
   typeof OnDemandAIPortraitGenerationOutputSchema
@@ -64,7 +66,7 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
       await ai.registry.lookupAction('/model/googleai/gemini-3.1-flash-image-preview');
     } catch (_) { }
 
-    const results: ({ url: string, generationTimeMs: number } | null)[] = [];
+    const results: ({ url: string, generationTimeMs: number, category: string } | null)[] = [];
     const CONCURRENCY_LIMIT = parseInt(process.env.AI_GENERATION_CONCURRENCY_LIMIT || '3');
 
     for (let i = 0; i < numToGenerate; i += CONCURRENCY_LIMIT) {
@@ -99,7 +101,11 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
               },
             });
 
-            return media?.url ? { url: media.url, generationTimeMs: Date.now() - startTime } : null;
+            return media?.url ? { 
+              url: media.url, 
+              generationTimeMs: Date.now() - startTime,
+              category: categorizePrompt(promptText)
+            } : null;
           } catch (error) {
             lastError = error;
             retries--;
@@ -117,7 +123,7 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
       results.push(...batchResults);
     }
 
-    const generatedImages = results.filter((res): res is { url: string, generationTimeMs: number } => res !== null);
+    const generatedImages = results.filter((res): res is { url: string, generationTimeMs: number, category: 'portrait' | 'half-body' | 'full-body' } => res !== null);
     return generatedImages;
   }
 );

@@ -14,9 +14,9 @@ import {
 } from "@/components/ui/dialog";
 
 interface GeneratedGalleryProps {
-  images: { url: string; generationTimeMs: number }[];
-  libraryImages: string[];
-  onAddToLibrary: (url: string) => void;
+  images: { url: string; generationTimeMs: number; category: 'portrait' | 'half-body' | 'full-body' }[];
+  libraryImages: { url: string; category: string }[];
+  onAddToLibrary: (image: { url: string; generationTimeMs: number; category: 'portrait' | 'half-body' | 'full-body' }) => void;
   onRemoveFromLibrary: (url: string) => void;
   onGenerateMore: () => void;
   isGenerating: boolean;
@@ -57,8 +57,8 @@ export function GeneratedGallery({
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {images.map(({ url, generationTimeMs }, idx) => {
-          const isSelected = libraryImages.includes(url);
+        {images.map(({ url, generationTimeMs, category }, idx) => {
+          const isSelected = libraryImages.some(img => img.url === url);
           return (
             <Card key={idx} className="relative group overflow-hidden bg-muted/20 border-none image-grid-item flex flex-col">
               <div className="aspect-[3/4] relative w-full">
@@ -90,18 +90,21 @@ export function GeneratedGallery({
                     size="icon"
                     variant={isSelected ? "default" : "secondary"}
                     className={`rounded-full ${isSelected ? "bg-primary text-primary-foreground hover:bg-destructive" : ""}`}
-                    onClick={() => isSelected ? onRemoveFromLibrary(url) : onAddToLibrary(url)}
+                    onClick={() => isSelected ? onRemoveFromLibrary(url) : onAddToLibrary({ url, generationTimeMs, category })}
                   >
                     {isSelected ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                   </Button>
                 </div>
 
-                {isSelected && (
-                  <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground shadow-lg">
-                    Selected
+                  {isSelected && (
+                    <Badge className="absolute top-2 right-2 bg-primary text-primary-foreground shadow-lg">
+                      Selected
+                    </Badge>
+                  )}
+                  <Badge className="absolute bottom-2 left-2 bg-black/60 text-white border-none backdrop-blur-sm">
+                    {category}
                   </Badge>
-                )}
-              </div>
+                </div>
               <div className="p-2 text-xs text-center text-muted-foreground border-t bg-background/50">
                 Generated in {(generationTimeMs / 1000).toFixed(1)}s
               </div>
