@@ -133,7 +133,7 @@ export default function PortraitProApp() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-12 space-y-10">
       <header className="flex flex-col items-center text-center gap-1">
-        <h1 className="relative w-full max-w-[1000px] h-48 md:h-72 transition-transform duration-300 hover:scale-[1.01]">
+        <h1 className="relative w-full max-w-[400px] h-24 md:h-32 transition-transform duration-300 hover:scale-[1.01]">
           <Image
             src="/images/onecool-top-ori.png"
             alt="One Cool AI Portrait Studio"
