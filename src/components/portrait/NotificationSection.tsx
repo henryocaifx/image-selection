@@ -191,17 +191,17 @@ export function NotificationSection({ libraryCount, libraryImages }: Notificatio
             {!isRequirementsMet && (
               <div className="text-center space-y-2 p-4 bg-destructive/5 rounded-xl border border-destructive/20 animate-in fade-in slide-in-from-top-2">
                 <p className="text-xs font-bold text-destructive flex items-center justify-center gap-1">
-                  Selection Requirements:
+                  Required Minimum Selection:
                 </p>
                 <div className="flex justify-center gap-4 text-[11px] font-medium">
                   <span className={cn("px-2 py-0.5 rounded-full", counts.portrait >= REQUIRED_PORTRAIT ? "bg-green-500/20 text-green-500" : "bg-destructive/10 text-destructive")}>
-                    Portrait: {counts.portrait}/{REQUIRED_PORTRAIT}
+                    Portrait: {counts.portrait} / {REQUIRED_PORTRAIT} (minimum)
                   </span>
                   <span className={cn("px-2 py-0.5 rounded-full", counts['half-body'] >= REQUIRED_HALF_BODY ? "bg-green-500/20 text-green-500" : "bg-destructive/10 text-destructive")}>
-                    Half: {counts['half-body']}/{REQUIRED_HALF_BODY}
+                    Half-body: {counts['half-body']} / {REQUIRED_HALF_BODY} (minimum)
                   </span>
                   <span className={cn("px-2 py-0.5 rounded-full", counts['full-body'] >= REQUIRED_FULL_BODY ? "bg-green-500/20 text-green-500" : "bg-destructive/10 text-destructive")}>
-                    Full: {counts['full-body']}/{REQUIRED_FULL_BODY}
+                    Full-body: {counts['full-body']} / {REQUIRED_FULL_BODY} (minimum)
                   </span>
                 </div>
               </div>
