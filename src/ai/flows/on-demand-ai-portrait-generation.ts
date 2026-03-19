@@ -52,7 +52,7 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
   async (input) => {
     // Requested count (usually 10)
     // const numToGenerate = input.count;
-    const numToGenerate = parseInt(process.env.ON_DEMAND_AI_PORTRAIT_GENERATION_NUM_TO_GENERATE || '5');
+    const numToGenerate = parseInt(process.env.NEXT_PUBLIC_ON_DEMAND_AI_PORTRAIT_GENERATION_NUM_TO_GENERATE || '10');
 
     const promptsPath = path.join(process.cwd(), 'src', 'ai', 'prompts.md');
     const promptsContent = fs.readFileSync(promptsPath, 'utf8');

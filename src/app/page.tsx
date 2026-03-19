@@ -46,18 +46,22 @@ export default function PortraitProApp() {
   const handleStartGeneration = async () => {
     if (!sourceImage) return;
 
-    const initialCount = parseInt(process.env.INITIAL_AI_PORTRAIT_GENERATION_COUNT || '10');
+    const initialCount = parseInt(process.env.NEXT_PUBLIC_INITIAL_AI_PORTRAIT_GENERATION_COUNT || '30');
     setPendingCount(initialCount);
     setIsGenerating(true);
     setGeneratedImages([]);
 
     try {
       const batchStartTime = Date.now();
-      const numParallelCalls = 6;
-      const imagesPerCall = Math.ceil(initialCount / numParallelCalls);
+      const imagesPerCall = 10;
+      
+      for (let i = 0; i < initialCount; i += imagesPerCall) {
+        const countToGenerate = Math.min(imagesPerCall, initialCount - i);
+        const result = await initialAIPortraitGeneration({ 
+          photoDataUri: sourceImage, 
+          count: countToGenerate 
+        });
 
-      const generationCalls = Array.from({ length: numParallelCalls }).map(async () => {
-        const result = await initialAIPortraitGeneration({ photoDataUri: sourceImage, count: imagesPerCall });
         if (result && result.generatedImages) {
           const processedImages = result.generatedImages.map(img => ({
             ...img,
@@ -67,11 +71,9 @@ export default function PortraitProApp() {
           setGeneratedImages(prev => [...prev, ...processedImages]);
           setPendingCount(prev => Math.max(0, prev - processedImages.length));
         } else {
-          setPendingCount(prev => Math.max(0, prev - imagesPerCall));
+          setPendingCount(prev => Math.max(0, prev - countToGenerate));
         }
-      });
-
-      await Promise.all(generationCalls);
+      }
 
       toast({
         title: "Initial Portraits Complete",
@@ -93,17 +95,21 @@ export default function PortraitProApp() {
   const handleGenerateMore = async () => {
     if (!sourceImage) return;
 
-    const moreCount = parseInt(process.env.ON_DEMAND_AI_PORTRAIT_GENERATION_NUM_TO_GENERATE || '10');
+    const moreCount = parseInt(process.env.NEXT_PUBLIC_ON_DEMAND_AI_PORTRAIT_GENERATION_NUM_TO_GENERATE || '10');
     setPendingCount(moreCount);
     setIsGenerating(true);
 
     try {
       const batchStartTime = Date.now();
-      const numParallelCalls = 5; // e.g., 2 calls of 5 for a total of 10
-      const imagesPerCall = Math.ceil(moreCount / numParallelCalls);
+      const imagesPerCall = 10;
+      
+      for (let i = 0; i < moreCount; i += imagesPerCall) {
+        const countToGenerate = Math.min(imagesPerCall, moreCount - i);
+        const result = await initialAIPortraitGeneration({ 
+          photoDataUri: sourceImage, 
+          count: countToGenerate 
+        });
 
-      const generationCalls = Array.from({ length: numParallelCalls }).map(async () => {
-        const result = await initialAIPortraitGeneration({ photoDataUri: sourceImage, count: imagesPerCall });
         if (result && result.generatedImages) {
           const processedImages = result.generatedImages.map(img => ({
             ...img,
@@ -113,11 +119,9 @@ export default function PortraitProApp() {
           setGeneratedImages(prev => [...prev, ...processedImages]);
           setPendingCount(prev => Math.max(0, prev - processedImages.length));
         } else {
-          setPendingCount(prev => Math.max(0, prev - imagesPerCall));
+          setPendingCount(prev => Math.max(0, prev - countToGenerate));
         }
-      });
-
-      await Promise.all(generationCalls);
+      }
 
       toast({
         title: "Variations Added",
