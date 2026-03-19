@@ -19,7 +19,7 @@ export async function POST(request: Request) {
                 const hh = String(now.getHours()).padStart(2, '0');
                 const min = String(now.getMinutes()).padStart(2, '0');
 
-                const loraValue = `${characterName || 'Unknown'}-${yyyy}${mm}${dd}-${hh}${min}.safetensor`;
+                const loraValue = `${characterName || 'Unknown'}-${yyyy}${mm}${dd}-${hh}${min}.safetensors`;
 
                 const portraitCount = counts?.portrait || 0;
                 const halfBodyCount = counts?.['half-body'] || 0;
