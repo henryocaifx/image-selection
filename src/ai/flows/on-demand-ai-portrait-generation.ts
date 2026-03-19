@@ -52,7 +52,7 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
   async (input) => {
     // Requested count (usually 10)
     // const numToGenerate = input.count;
-    const numToGenerate = parseInt(process.env.NEXT_PUBLIC_ON_DEMAND_AI_PORTRAIT_GENERATION_NUM_TO_GENERATE || '5');
+    const numToGenerate = parseInt(process.env.ON_DEMAND_AI_PORTRAIT_GENERATION_NUM_TO_GENERATE || '5');
 
     const promptsPath = path.join(process.cwd(), 'src', 'ai', 'prompts.md');
     const promptsContent = fs.readFileSync(promptsPath, 'utf8');
@@ -101,8 +101,8 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
               },
             });
 
-            return media?.url ? { 
-              url: media.url, 
+            return media?.url ? {
+              url: media.url,
               generationTimeMs: Date.now() - startTime,
               category: categorizePrompt(promptText)
             } : null;
@@ -114,7 +114,7 @@ const onDemandAIPortraitGenerationFlow = ai.defineFlow(
             }
           }
         }
-        
+
         console.error('On-demand generation failed after retries:', lastError);
         return null;
       });

@@ -46,7 +46,7 @@ export default function PortraitProApp() {
   const handleStartGeneration = async () => {
     if (!sourceImage) return;
 
-    const initialCount = parseInt(process.env.NEXT_PUBLIC_INITIAL_AI_PORTRAIT_GENERATION_COUNT || '10');
+    const initialCount = parseInt(process.env.INITIAL_AI_PORTRAIT_GENERATION_COUNT || '10');
     setPendingCount(initialCount);
     setIsGenerating(true);
     setGeneratedImages([]);
@@ -55,7 +55,7 @@ export default function PortraitProApp() {
       const batchStartTime = Date.now();
       const numParallelCalls = 6;
       const imagesPerCall = Math.ceil(initialCount / numParallelCalls);
-      
+
       const generationCalls = Array.from({ length: numParallelCalls }).map(async () => {
         const result = await initialAIPortraitGeneration({ photoDataUri: sourceImage, count: imagesPerCall });
         if (result && result.generatedImages) {
@@ -63,14 +63,14 @@ export default function PortraitProApp() {
             ...img,
             generationTimeMs: Date.now() - batchStartTime
           })) as GeneratedImageData[];
-          
+
           setGeneratedImages(prev => [...prev, ...processedImages]);
           setPendingCount(prev => Math.max(0, prev - processedImages.length));
         } else {
-           setPendingCount(prev => Math.max(0, prev - imagesPerCall));
+          setPendingCount(prev => Math.max(0, prev - imagesPerCall));
         }
       });
-      
+
       await Promise.all(generationCalls);
 
       toast({
@@ -93,7 +93,7 @@ export default function PortraitProApp() {
   const handleGenerateMore = async () => {
     if (!sourceImage) return;
 
-    const moreCount = parseInt(process.env.NEXT_PUBLIC_ON_DEMAND_AI_PORTRAIT_GENERATION_NUM_TO_GENERATE || '10');
+    const moreCount = parseInt(process.env.ON_DEMAND_AI_PORTRAIT_GENERATION_NUM_TO_GENERATE || '10');
     setPendingCount(moreCount);
     setIsGenerating(true);
 
@@ -109,7 +109,7 @@ export default function PortraitProApp() {
             ...img,
             generationTimeMs: Date.now() - batchStartTime
           })) as GeneratedImageData[];
-          
+
           setGeneratedImages(prev => [...prev, ...processedImages]);
           setPendingCount(prev => Math.max(0, prev - processedImages.length));
         } else {

@@ -55,7 +55,7 @@ const initialAIPortraitGenerationFlow = ai.defineFlow(
     outputSchema: InitialAIPortraitGenerationOutputSchema,
   },
   async input => {
-    const count = input.count || parseInt(process.env.NEXT_PUBLIC_INITIAL_AI_PORTRAIT_GENERATION_COUNT || '10');
+    const count = input.count || parseInt(process.env.INITIAL_AI_PORTRAIT_GENERATION_COUNT || '10');
 
     const promptsPath = path.join(process.cwd(), 'src', 'ai', 'prompts.md');
     const promptsContent = fs.readFileSync(promptsPath, 'utf8');
