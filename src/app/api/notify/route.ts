@@ -1,11 +1,65 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import pool, { ensureTableExists } from '@/lib/db';
+import { uuidv7 } from 'uuidv7';
 
 export async function POST(request: Request) {
     try {
         const { action, images, characterName, userEmail, counts } = await request.json();
 
         if (action === 'complete') {
+            // Write to database
+            try {
+                await ensureTableExists();
+
+                const now = new Date();
+                const yyyy = now.getFullYear();
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                const dd = String(now.getDate()).padStart(2, '0');
+                const hh = String(now.getHours()).padStart(2, '0');
+                const min = String(now.getMinutes()).padStart(2, '0');
+
+                const loraValue = `${characterName || 'Unknown'}-${yyyy}${mm}${dd}-${hh}${min}.safetensor`;
+
+                const portraitCount = counts?.portrait || 0;
+                const halfBodyCount = counts?.['half-body'] || 0;
+                const fullBodyCount = counts?.['full-body'] || 0;
+                const totalCount = portraitCount + halfBodyCount + fullBodyCount;
+
+                const insertQuery = `
+                    INSERT INTO character_lora (
+                        id, 
+                        name, 
+                        lora, 
+                        user_email, 
+                        portrait_selected, 
+                        half_body_selected, 
+                        full_body_selected, 
+                        total_selected, 
+                        updated_at
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                `;
+
+                const values = [
+                    uuidv7(),
+                    characterName || 'Unknown',
+                    loraValue,
+                    userEmail || 'N/A',
+                    portraitCount,
+                    halfBodyCount,
+                    fullBodyCount,
+                    totalCount,
+                    now
+                ];
+
+                await pool.query(insertQuery, values);
+                console.log("Database record created successfully");
+            } catch (dbError) {
+                console.error("Failed to write to database:", dbError);
+                // Return an error if DB write fails? Or just continue...
+                // Usually DB is more critical than email.
+            }
+
             try {
                 const transporter = nodemailer.createTransport({
                     host: process.env.SMTP_HOST,
@@ -64,13 +118,11 @@ Total Selected: ${(counts?.portrait || 0) + (counts?.['half-body'] || 0) + (coun
                 console.log("Email sent successfully");
             } catch (emailError) {
                 console.error("Failed to send email:", emailError);
-                // We'll proceed even if email fails, or we could return an error. Let's return a partial success or just log it.
-                // If it's critical, we could throw here. We will just log it for now.
             }
 
-            console.log('Action complete, selected images:', images);
+            // console.log('Action complete, selected images:', images);
 
-            return NextResponse.json({ success: true, message: 'Notification sent and selection completed.' });
+            return NextResponse.json({ success: true, message: 'Character Lora recorded and notification sent.' });
         }
 
         return NextResponse.json({ success: false, message: 'Invalid action.' }, { status: 400 });
